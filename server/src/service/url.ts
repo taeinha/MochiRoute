@@ -4,6 +4,8 @@ import {
   Prisma,
 } from "../generated/prisma/client";
 import { generateShortCode } from "../util/tools";
+import { toExposedUrlRecord } from "../exposed/url";
+import { UrlRecord as PublicUrl } from "@mochiroute/shared";
 
 const MAX_GENERATION_RETRIES = 3;
 
@@ -43,7 +45,21 @@ export async function createUrlRecord(
   throw new ShortCodeExhaustedError();
 }
 
-export async function findUrlRecordByShortCode(
+export async function resolveRedirect(
+  db: PrismaClient,
+  shortCode: string,
+): Promise<string> {
+  let url: PrismaUrlRecord;
+  try {
+    url = await findUrlRecordByShortCode(db, shortCode);
+    await incrementUrlClicks(db, url.id);
+  } catch (error) {
+    throw error;
+  }
+  return url.originalURL;
+}
+
+async function findUrlRecordByShortCode(
   db: PrismaClient,
   shortCode: string,
 ): Promise<PrismaUrlRecord> {
@@ -52,7 +68,7 @@ export async function findUrlRecordByShortCode(
   return url;
 }
 
-export async function incrementUrlClicks(
+async function incrementUrlClicks(
   db: PrismaClient,
   urlId: number,
 ): Promise<void> {
@@ -72,16 +88,32 @@ export async function incrementUrlClicks(
   }
 }
 
-export async function resolveRedirect(
+export async function getUrlRecord(
   db: PrismaClient,
-  shortCode: string,
-): Promise<string> {
+  urlId: number,
+): Promise<PublicUrl> {
   let url: PrismaUrlRecord;
   try {
-    url = await findUrlRecordByShortCode(db, shortCode);
-    await incrementUrlClicks(db, url.id);
+    url = await findUrlRecordById(db, urlId);
+    return toExposedUrlRecord(url);
   } catch (error) {
     throw error;
   }
-  return url.originalURL;
+}
+
+async function findUrlRecordById(
+  db: PrismaClient,
+  urlId: number,
+): Promise<PrismaUrlRecord> {
+  const url = await db.urlRecord.findUnique({ where: { id: urlId } });
+  if (!url) throw new UrlNotFoundError();
+  return url;
+}
+
+// using deleteMany to avoid the need to check if the URL exists
+export async function deleteUrlRecord(
+  db: PrismaClient,
+  urlId: number,
+): Promise<void> {
+  await db.urlRecord.deleteMany({ where: { id: urlId } });
 }

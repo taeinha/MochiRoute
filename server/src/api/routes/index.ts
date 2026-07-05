@@ -19,7 +19,6 @@ export function attachRoutes(app: Express, config: Config, db: PrismaClient) {
 
   api.post("/url", createUrl(db, config));
   api.get("/url/:id", getUrl(db));
-  api.put("/url/:id", updateUrl(db));
   api.delete("/url/:id", deleteUrl(db));
 
   app.use("/api", api);

@@ -2,10 +2,10 @@ import { z } from "zod";
 import { createUrlSchema } from "./validations";
 
 export interface UrlRecord {
-  id: string;
+  id: number;
   shortCode: string;
   originalUrl: string;
-  userId: string | null;
+  userId: number | null;
   clicks: number;
   createdAt: string;
   updatedAt: string;

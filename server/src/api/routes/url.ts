@@ -4,6 +4,8 @@ import {
   ApiResponse,
   createUrlSchema,
   CreateUrlResponse,
+  shortCodeParamSchema,
+  urlIdParamSchema,
 } from "@mochiroute/shared";
 import { writeErrorResponse } from "./write";
 import { Config } from "../../config";
@@ -13,6 +15,8 @@ import {
   ShortCodeExhaustedError,
   resolveRedirect,
   UrlNotFoundError,
+  getUrlRecord,
+  deleteUrlRecord,
 } from "../../service/url";
 
 export const createUrl =
@@ -45,7 +49,11 @@ export const createUrl =
 
 export const redirectUrl =
   (db: PrismaClient) => async (req: Request, res: Response) => {
-    const shortCode = req.params.shortCode;
+    const validationResult = shortCodeParamSchema.safeParse(req.params);
+    if (!validationResult.success) {
+      return writeErrorResponse(res, validationResult.error.message, 400);
+    }
+    const { shortCode } = validationResult.data;
 
     try {
       const originalURL = await resolveRedirect(db, shortCode as string);
@@ -59,15 +67,39 @@ export const redirectUrl =
 
 export const getUrl =
   (db: PrismaClient) => async (req: Request, res: Response) => {
-    // do get url logic here
-  };
-
-export const updateUrl =
-  (db: PrismaClient) => async (req: Request, res: Response) => {
-    // do update url logic here
+    const validationResult = urlIdParamSchema.safeParse(req.params);
+    if (!validationResult.success) {
+      return writeErrorResponse(res, validationResult.error.message, 400);
+    }
+    const { id } = validationResult.data;
+    try {
+      const url = await getUrlRecord(db, Number(id));
+      return res.json({
+        success: true,
+        message: "URL fetched successfully",
+        data: url,
+      });
+    } catch (e) {
+      if (e instanceof UrlNotFoundError)
+        return writeErrorResponse(res, e.message, 404);
+      return writeErrorResponse(res, "Failed to get URL", 500);
+    }
   };
 
 export const deleteUrl =
   (db: PrismaClient) => async (req: Request, res: Response) => {
-    // do delete url logic here
+    const validationResult = urlIdParamSchema.safeParse(req.params);
+    if (!validationResult.success) {
+      return writeErrorResponse(res, validationResult.error.message, 400);
+    }
+    const { id } = validationResult.data;
+    try {
+      await deleteUrlRecord(db, Number(id));
+      return res.json({
+        success: true,
+        message: "URL deleted successfully",
+      });
+    } catch (e) {
+      return writeErrorResponse(res, "Failed to delete URL", 500);
+    }
   };

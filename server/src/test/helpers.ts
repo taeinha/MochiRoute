@@ -44,6 +44,7 @@ export function createMockDb() {
       create: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
+      deleteMany: vi.fn(),
     },
   } as unknown as PrismaClient;
 }
@@ -56,5 +57,16 @@ export const mockUrlRecord = {
   clicks: 0,
   createdAt: new Date("2026-01-01T00:00:00.000Z"),
   updatedAt: new Date("2026-01-01T00:00:00.000Z"),
+  expiresAt: null,
+};
+
+export const mockExposedUrlRecord = {
+  id: 1,
+  originalUrl: "https://example.com",
+  shortCode: "abc12Xy",
+  userId: null,
+  clicks: 0,
+  createdAt: "2026-01-01T00:00:00.000Z",
+  updatedAt: "2026-01-01T00:00:00.000Z",
   expiresAt: null,
 };
