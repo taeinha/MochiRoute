@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { createUrlSchema } from "./validations";
+
 export interface UrlRecord {
   id: string;
   shortCode: string;
@@ -5,22 +8,18 @@ export interface UrlRecord {
   userId: string | null;
   clicks: number;
   createdAt: string;
+  updatedAt: string;
   expiresAt: string | null;
 }
 
-export interface CreateUrlRequest {
-  originalUrl: string;
-  customCode?: string;
-  expiresAt?: string;
-}
-
 export interface CreateUrlResponse {
-  shortCode: string;
   shortUrl: string;
   originalUrl: string;
 }
 
 export interface UrlListResponse {
   urls: UrlRecord[];
-  total: number;
+  count: number;
 }
+
+export type CreateUrlRequest = z.infer<typeof createUrlSchema>;

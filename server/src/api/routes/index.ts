@@ -1,22 +1,35 @@
-import { Config } from "../../config";
+import path from "path";
+import express, { Express, Router } from "express";
+import { Config, isDevelopment } from "../../config";
 import { PrismaClient } from "../../generated/prisma/client";
-import { Express } from "express";
 import { loginUser, registerUser } from "./auth";
 import { createUrl, deleteUrl, getUrl, redirectUrl, updateUrl } from "./url";
 
+const CLIENT_DIST = path.join(__dirname, "../../../../client/dist");
+
 export function attachRoutes(app: Express, config: Config, db: PrismaClient) {
-  app.get("/health", (req, res) => {
+  const api = Router();
+
+  app.get("/health", (_req, res) => {
     res.json({ message: "OK" });
   });
 
-  // auth routes
-  app.post("/register", registerUser(db, config));
-  app.post("/login", loginUser(db, config));
+  api.post("/register", registerUser(db, config));
+  api.post("/login", loginUser(db, config));
 
-  // url routes
-  app.post("/url", createUrl(db));
-  app.get("/url/:id", getUrl(db));
-  app.put("/url/:id", updateUrl(db));
-  app.delete("/url/:id", deleteUrl(db));
-  app.get("/url/:id/redirect", redirectUrl(db));
+  api.post("/url", createUrl(db, config));
+  api.get("/url/:id", getUrl(db));
+  api.put("/url/:id", updateUrl(db));
+  api.delete("/url/:id", deleteUrl(db));
+
+  app.use("/api", api);
+
+  app.get("/r/:shortCode", redirectUrl(db));
+
+  if (!isDevelopment()) {
+    app.use(express.static(CLIENT_DIST));
+    app.get(/^(?!\/api|\/r\/|\/health).*/, (_req, res) => {
+      res.sendFile(path.join(CLIENT_DIST, "index.html"));
+    });
+  }
 }
