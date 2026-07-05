@@ -1,7 +1,7 @@
 import { PrismaClient } from "../../generated/prisma/client";
 import { Request, Response } from "express";
 import { AuthResponse, registerSchema, loginSchema } from "@mochiroute/shared";
-import { writeErrorResponse } from "./write";
+import { writeErrorResponse, logError } from "./write";
 import { Config } from "../../config";
 import {
   registerUser as registerUserAccount,
@@ -36,7 +36,9 @@ export const registerUser =
       if (error instanceof UserAlreadyExistsError) {
         return writeErrorResponse(res, error.message, 409);
       }
-      return writeErrorResponse(res, "Failed to create user", 500);
+      const message = "Failed to create user";
+      logError(message, error);
+      return writeErrorResponse(res, message, 500);
     }
   };
 
@@ -65,6 +67,8 @@ export const loginUser =
       if (error instanceof InvalidCredentialsError) {
         return writeErrorResponse(res, error.message, 401);
       }
-      return writeErrorResponse(res, "Failed to log in", 500);
+      const message = "Failed to log in";
+      logError(message, error);
+      return writeErrorResponse(res, message, 500);
     }
   };

@@ -9,7 +9,7 @@ import {
   UrlListResponse,
   listQuerySchema,
 } from "@mochiroute/shared";
-import { writeErrorResponse } from "./write";
+import { writeErrorResponse, logError } from "./write";
 import { Config } from "../../config";
 import { toCreateUrlResponse } from "../../exposed/url";
 import {
@@ -48,7 +48,9 @@ export const createUrl =
       if (error instanceof ShortCodeExhaustedError) {
         return writeErrorResponse(res, error.message, 409);
       }
-      return writeErrorResponse(res, "Failed to create URL", 500);
+      const message = "Failed to create URL";
+      logError(message, error);
+      return writeErrorResponse(res, message, 500);
     }
   };
 
@@ -63,10 +65,12 @@ export const redirectUrl =
     try {
       const originalURL = await resolveRedirect(db, shortCode as string);
       return res.redirect(302, originalURL);
-    } catch (e) {
-      if (e instanceof UrlNotFoundError)
-        return writeErrorResponse(res, e.message, 404);
-      return writeErrorResponse(res, "Failed to redirect URL", 500);
+    } catch (error) {
+      if (error instanceof UrlNotFoundError)
+        return writeErrorResponse(res, error.message, 404);
+      const message = "Failed to redirect URL";
+      logError(message, error);
+      return writeErrorResponse(res, message, 500);
     }
   };
 
@@ -79,16 +83,18 @@ export const getUrl =
     const { id } = validationResult.data;
     const { user } = req as AuthenticatedRequest;
     try {
-      const url = await getUrlRecord(db, Number(id), user?.userId);
+      const url = await getUrlRecord(db, Number(id), user.userId);
       return res.json({
         success: true,
         message: "URL fetched successfully",
         data: url,
       });
-    } catch (e) {
-      if (e instanceof UrlNotFoundError)
-        return writeErrorResponse(res, e.message, 404);
-      return writeErrorResponse(res, "Failed to get URL", 500);
+    } catch (error) {
+      if (error instanceof UrlNotFoundError)
+        return writeErrorResponse(res, error.message, 404);
+      const message = "Failed to get URL";
+      logError(message, error);
+      return writeErrorResponse(res, message, 500);
     }
   };
 
@@ -113,8 +119,10 @@ export const getUrls =
         count: count,
       };
       return res.json(response);
-    } catch (e) {
-      return writeErrorResponse(res, "Failed to get URLs", 500);
+    } catch (error) {
+      const message = "Failed to get URLs";
+      logError(message, error);
+      return writeErrorResponse(res, message, 500);
     }
   };
 
@@ -127,12 +135,14 @@ export const deleteUrl =
     const { user } = req as AuthenticatedRequest;
     const { id } = validationResult.data;
     try {
-      await deleteUrlRecord(db, Number(id), user?.userId);
+      await deleteUrlRecord(db, Number(id), user.userId);
       return res.json({
         success: true,
         message: "URL deleted successfully",
       });
-    } catch (e) {
-      return writeErrorResponse(res, "Failed to delete URL", 500);
+    } catch (error) {
+      const message = "Failed to delete URL";
+      logError(message, error);
+      return writeErrorResponse(res, message, 500);
     }
   };
