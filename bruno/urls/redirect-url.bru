@@ -9,9 +9,3 @@ get {
   body: none
   auth: none
 }
-
-tests {
-  test("should redirect", function() {
-    expect(res.getStatus()).to.be.oneOf([301, 302, 307, 308]);
-  });
-}

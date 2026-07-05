@@ -3,7 +3,7 @@ import express, { Express, Router } from "express";
 import { Config, isDevelopment } from "../../config";
 import { PrismaClient } from "../../generated/prisma/client";
 import { loginUser, registerUser } from "./auth";
-import { createUrl, deleteUrl, getUrl, redirectUrl, updateUrl } from "./url";
+import { createUrl, deleteUrl, getUrl, redirectUrl } from "./url";
 
 const CLIENT_DIST = path.join(__dirname, "../../../../client/dist");
 
