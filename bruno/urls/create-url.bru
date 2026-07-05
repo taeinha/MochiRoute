@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/url
+  url: {{apiUrl}}/url
   body: json
   auth: bearer
 }
@@ -16,16 +16,28 @@ auth:bearer {
 
 body:json {
   {
-    "originalUrl": "https://example.com/very-long-path",
-    "customCode": "demo-link"
+    "originalUrl": "https://example.com/very-long-path"
   }
 }
 
 script:post-response {
   if (res.status === 200 || res.status === 201) {
     const body = res.getBody();
-    if (body?.data?.id) {
-      bru.setEnvVar("urlId", String(body.data.id));
+    const shortUrl = body?.data?.shortUrl;
+    if (shortUrl) {
+      const shortCode = shortUrl.split("/").pop();
+      if (shortCode) {
+        bru.setEnvVar("shortCode", shortCode);
+      }
     }
   }
+}
+
+tests {
+  test("should return 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  test("should return shortUrl", function() {
+    expect(res.getBody().data.shortUrl).to.be.a("string");
+  });
 }

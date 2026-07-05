@@ -1,15 +1,15 @@
-import {
-  PrismaClient,
-  Prisma,
-  User as PrismaUser,
-} from "../../generated/prisma/client";
+import { PrismaClient } from "../../generated/prisma/client";
 import { Request, Response } from "express";
-import { hashPassword, verifyPassword } from "../../crypto";
 import { AuthResponse, registerSchema, loginSchema } from "@mochiroute/shared";
 import { writeErrorResponse } from "./write";
-import { toExposedUser } from "../../exposed";
-import { signToken } from "../../crypto/jwt";
 import { Config } from "../../config";
+import {
+  registerUser as registerUserAccount,
+  authenticateUser,
+  buildAuthResult,
+  UserAlreadyExistsError,
+  InvalidCredentialsError,
+} from "../../service/auth";
 
 export const registerUser =
   (db: PrismaClient, config: Config) => async (req: Request, res: Response) => {
@@ -20,40 +20,24 @@ export const registerUser =
 
     const { email, password } = validationResult.data;
 
-    const hashedPassword = await hashPassword(password);
-    let user: PrismaUser;
     try {
-      user = await db.user.create({
-        data: {
-          email,
-          passwordHash: hashedPassword,
-          role: "USER",
-        },
-      });
+      const user = await registerUserAccount(db, email, password);
+      const { user: exposed, token } = buildAuthResult(user, config.jwtSecret);
+
+      const response: AuthResponse = {
+        success: true,
+        message: "User created successfully",
+        data: exposed,
+        token,
+      };
+
+      return res.status(201).json(response);
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2002"
-      ) {
-        return writeErrorResponse(res, "User already exists", 409);
+      if (error instanceof UserAlreadyExistsError) {
+        return writeErrorResponse(res, error.message, 409);
       }
       return writeErrorResponse(res, "Failed to create user", 500);
     }
-
-    const exposed = toExposedUser(user);
-    const token = signToken(
-      { userId: user.id, email: exposed.email, role: exposed.role },
-      config.jwtSecret,
-    );
-
-    const response: AuthResponse = {
-      success: true,
-      message: "User created successfully",
-      data: exposed,
-      token,
-    };
-
-    res.status(201).json(response);
   };
 
 export const loginUser =
@@ -62,30 +46,25 @@ export const loginUser =
     if (!validationResult.success) {
       return writeErrorResponse(res, validationResult.error.message, 400);
     }
+
     const { email, password } = validationResult.data;
 
-    const user = await db.user.findUnique({
-      where: { email },
-    });
+    try {
+      const user = await authenticateUser(db, email, password);
+      const { user: exposed, token } = buildAuthResult(user, config.jwtSecret);
 
-    const isPasswordValid =
-      user != null && (await verifyPassword(password, user.passwordHash));
-    if (!isPasswordValid) {
-      return writeErrorResponse(res, "Invalid email or password", 401);
+      const response: AuthResponse = {
+        success: true,
+        message: "User logged in successfully",
+        data: exposed,
+        token,
+      };
+
+      return res.status(200).json(response);
+    } catch (error) {
+      if (error instanceof InvalidCredentialsError) {
+        return writeErrorResponse(res, error.message, 401);
+      }
+      return writeErrorResponse(res, "Failed to log in", 500);
     }
-
-    const exposed = toExposedUser(user);
-    const token = signToken(
-      { userId: user.id, email: exposed.email, role: exposed.role },
-      config.jwtSecret,
-    );
-
-    const response: AuthResponse = {
-      success: true,
-      message: "User logged in successfully",
-      data: exposed,
-      token,
-    };
-
-    res.status(200).json(response);
   };

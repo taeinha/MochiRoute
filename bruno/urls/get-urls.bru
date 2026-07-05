@@ -1,0 +1,32 @@
+meta {
+  name: Get URLs
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{apiUrl}}/url
+  body: none
+  auth: bearer
+}
+
+params:query {
+  page: 1
+  pageLength: 10
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  test("should return paginated url list", function() {
+    const body = res.getBody();
+    expect(body.success).to.equal(true);
+    expect(body.data).to.be.an("array");
+    expect(body.count).to.be.a("number");
+  });
+}

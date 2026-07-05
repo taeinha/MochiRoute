@@ -5,7 +5,7 @@ meta {
 }
 
 post {
-  url: {{baseUrl}}/login
+  url: {{apiUrl}}/login
   body: json
   auth: none
 }
@@ -20,8 +20,8 @@ body:json {
 script:post-response {
   if (res.status === 200 || res.status === 201) {
     const body = res.getBody();
-    if (body?.data?.token) {
-      bru.setEnvVar("token", body.data.token);
+    if (body?.token) {
+      bru.setEnvVar("token", body.token);
     }
   }
 }

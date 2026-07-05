@@ -1,26 +1,25 @@
+import { z } from "zod";
+import { createUrlSchema } from "./validations";
+import { ApiResponse } from "./write";
+
 export interface UrlRecord {
-  id: string;
+  id: number;
   shortCode: string;
   originalUrl: string;
-  userId: string | null;
+  userId: number | null;
   clicks: number;
   createdAt: string;
+  updatedAt: string;
   expiresAt: string | null;
 }
 
-export interface CreateUrlRequest {
-  originalUrl: string;
-  customCode?: string;
-  expiresAt?: string;
-}
-
 export interface CreateUrlResponse {
-  shortCode: string;
   shortUrl: string;
   originalUrl: string;
 }
 
-export interface UrlListResponse {
-  urls: UrlRecord[];
-  total: number;
+export interface UrlListResponse extends ApiResponse<UrlRecord[]> {
+  count: number;
 }
+
+export type CreateUrlRequest = z.infer<typeof createUrlSchema>;

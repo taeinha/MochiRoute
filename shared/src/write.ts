@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { listQuerySchema } from "./validations/url";
+
 export interface ApiResponse<T> {
   success: boolean;
   message: string;
@@ -5,7 +8,4 @@ export interface ApiResponse<T> {
   code?: string;
 }
 
-export interface Options {
-  pageLength: number;
-  page: number;
-}
+export type ListQueryOptions = z.infer<typeof listQuerySchema>;
