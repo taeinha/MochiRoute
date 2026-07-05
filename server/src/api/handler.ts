@@ -1,11 +1,24 @@
 import express, { Express } from "express";
 import cors from "cors";
+import morgan from "morgan";
 import { Config } from "../config";
 import { PrismaClient } from "../generated/prisma/client";
 import { attachRoutes } from "./routes";
+import { logger } from "../lib/logger";
 
 export const createApp = (config: Config, db: PrismaClient): Express => {
   const app = express();
+
+  const morganFormat =
+    process.env.NODE_ENV === "production" ? "combined" : "dev";
+
+  app.use(
+    morgan(morganFormat, {
+      stream: {
+        write: (message: string) => logger.http(message),
+      },
+    }),
+  );
 
   app.use(cors());
   app.use(express.json());

@@ -16,3 +16,21 @@ body:json {
     "password": "{{testPassword}}"
   }
 }
+
+script:post-response {
+  if (res.status === 201) {
+    const body = res.getBody();
+    if (body?.token) {
+      bru.setEnvVar("token", body.token);
+    }
+  }
+}
+
+tests {
+  test("should return 201", function() {
+    expect(res.getStatus()).to.equal(201);
+  });
+  test("should return token", function() {
+    expect(res.getBody().token).to.be.a("string");
+  });
+}

@@ -5,7 +5,7 @@ import {
 } from "../../generated/prisma/client";
 import { Request, Response } from "express";
 import { hashPassword, verifyPassword } from "../../crypto";
-import { AuthResponse, registerSchema } from "@mochiroute/shared";
+import { AuthResponse, registerSchema, loginSchema } from "@mochiroute/shared";
 import { writeErrorResponse } from "./write";
 import { toExposedUser } from "../../exposed";
 import { signToken } from "../../crypto/jwt";
@@ -57,6 +57,35 @@ export const registerUser =
   };
 
 export const loginUser =
-  (db: PrismaClient) => async (req: Request, res: Response) => {
-    // do login user logic here
+  (db: PrismaClient, config: Config) => async (req: Request, res: Response) => {
+    const validationResult = loginSchema.safeParse(req.body);
+    if (!validationResult.success) {
+      return writeErrorResponse(res, validationResult.error.message, 400);
+    }
+    const { email, password } = validationResult.data;
+
+    const user = await db.user.findUnique({
+      where: { email },
+    });
+
+    const isPasswordValid =
+      user != null && (await verifyPassword(password, user.passwordHash));
+    if (!isPasswordValid) {
+      return writeErrorResponse(res, "Invalid email or password", 401);
+    }
+
+    const exposed = toExposedUser(user);
+    const token = signToken(
+      { userId: user.id, email: exposed.email, role: exposed.role },
+      config.jwtSecret,
+    );
+
+    const response: AuthResponse = {
+      success: true,
+      message: "User logged in successfully",
+      data: exposed,
+      token,
+    };
+
+    res.status(200).json(response);
   };
