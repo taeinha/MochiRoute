@@ -10,7 +10,7 @@ export function attachRoutes(app: Express, config: Config, db: PrismaClient) {
   });
 
   // auth routes
-  app.post("/register", registerUser(db));
+  app.post("/register", registerUser(db, config));
   app.post("/login", loginUser(db));
 
   // url routes
