@@ -5,15 +5,12 @@ import {
   createMockNext,
   createMockReq,
   createMockRes,
+  testConfig,
 } from "../test/helpers";
 
 describe("authenticate", () => {
-  const jwtSecret = "middleware-test-secret";
-
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.JWT_SECRET = jwtSecret;
-    process.env.NODE_ENV = "development";
   });
 
   it("returns 401 when authorization header is missing", () => {
@@ -21,7 +18,7 @@ describe("authenticate", () => {
     const res = createMockRes();
     const next = createMockNext();
 
-    authenticate(req, res, next);
+    authenticate(testConfig)(req, res, next);
 
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({
@@ -36,7 +33,7 @@ describe("authenticate", () => {
     const res = createMockRes();
     const next = createMockNext();
 
-    authenticate(req, res, next);
+    authenticate(testConfig)(req, res, next);
 
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({
@@ -52,12 +49,12 @@ describe("authenticate", () => {
       email: "test@example.com",
       role: "user",
     };
-    const token = signToken(payload, jwtSecret);
+    const token = signToken(payload, testConfig.jwtSecret);
     const req = createMockReq({}, {}, { authorization: `Bearer ${token}` });
     const res = createMockRes();
     const next = createMockNext();
 
-    authenticate(req, res, next);
+    authenticate(testConfig)(req, res, next);
 
     expect(next).toHaveBeenCalledOnce();
     expect((req as AuthenticatedRequest).user).toMatchObject(payload);

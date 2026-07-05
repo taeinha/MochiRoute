@@ -27,3 +27,8 @@ export const urlIdParamSchema = z.object({
     .int({ message: "Invalid URL id" })
     .positive({ message: "Invalid URL id" }),
 });
+
+export const listQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  pageLength: z.coerce.number().int().positive().max(100).default(10),
+});

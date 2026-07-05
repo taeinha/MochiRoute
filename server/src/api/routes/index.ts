@@ -3,7 +3,8 @@ import express, { Express, Router } from "express";
 import { Config, isDevelopment } from "../../config";
 import { PrismaClient } from "../../generated/prisma/client";
 import { loginUser, registerUser } from "./auth";
-import { createUrl, deleteUrl, getUrl, redirectUrl } from "./url";
+import { createUrl, deleteUrl, getUrl, getUrls, redirectUrl } from "./url";
+import { authenticate, optionalAuthenticate } from "../../middleware/auth";
 
 const CLIENT_DIST = path.join(__dirname, "../../../../client/dist");
 
@@ -17,9 +18,10 @@ export function attachRoutes(app: Express, config: Config, db: PrismaClient) {
   api.post("/register", registerUser(db, config));
   api.post("/login", loginUser(db, config));
 
-  api.post("/url", createUrl(db, config));
-  api.get("/url/:id", getUrl(db));
-  api.delete("/url/:id", deleteUrl(db));
+  api.post("/url", optionalAuthenticate(config), createUrl(db, config));
+  api.get("/url/:id", authenticate(config), getUrl(db));
+  api.get("/url", authenticate(config), getUrls(db));
+  api.delete("/url/:id", authenticate(config), deleteUrl(db));
 
   app.use("/api", api);
 

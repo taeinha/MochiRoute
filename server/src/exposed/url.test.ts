@@ -35,7 +35,7 @@ describe("toExposedUrlRecord", () => {
       id: 1,
       originalUrl: "https://example.com",
       shortCode: "abc12Xy",
-      userId: null,
+      userId: 1,
       clicks: 0,
       createdAt: "2026-01-01T00:00:00.000Z",
       updatedAt: "2026-01-01T00:00:00.000Z",

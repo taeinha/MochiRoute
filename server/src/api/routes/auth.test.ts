@@ -1,17 +1,31 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { Prisma } from "../../generated/prisma/client";
 import { registerUser, loginUser } from "./auth";
-import { createMockReq, createMockRes, testConfig } from "../../test/helpers";
+import {
+  authenticateUser,
+  buildAuthResult,
+  InvalidCredentialsError,
+  registerUser as registerUserAccount,
+  UserAlreadyExistsError,
+} from "../../service/auth";
+import {
+  createMockReq,
+  createMockRes,
+  mockPrismaUser,
+  testConfig,
+} from "../../test/helpers";
 import { createMockDb } from "../../test/helpers";
 
-vi.mock("../../crypto", () => ({
-  hashPassword: vi.fn().mockResolvedValue("hashed-password"),
-  verifyPassword: vi.fn(),
-}));
+vi.mock("../../service/auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../service/auth")>();
+  return {
+    ...actual,
+    registerUser: vi.fn(),
+    authenticateUser: vi.fn(),
+    buildAuthResult: vi.fn(),
+  };
+});
 
-import { hashPassword, verifyPassword } from "../../crypto";
-
-describe("registerUser", () => {
+describe("registerUser route", () => {
   const db = createMockDb();
 
   beforeEach(() => {
@@ -27,6 +41,7 @@ describe("registerUser", () => {
 
     await registerUser(db, testConfig)(req, res);
 
+    expect(registerUserAccount).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ success: false }),
@@ -34,13 +49,10 @@ describe("registerUser", () => {
   });
 
   it("returns 201 and token on success", async () => {
-    vi.mocked(db.user.create).mockResolvedValue({
-      id: 1,
-      email: "test@example.com",
-      role: "USER",
-      passwordHash: "hashed-password",
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    vi.mocked(registerUserAccount).mockResolvedValue(mockPrismaUser);
+    vi.mocked(buildAuthResult).mockReturnValue({
+      user: { email: "test@example.com", role: "user" },
+      token: "test-token",
     });
 
     const req = createMockReq({
@@ -51,23 +63,29 @@ describe("registerUser", () => {
 
     await registerUser(db, testConfig)(req, res);
 
-    expect(hashPassword).toHaveBeenCalledWith("password123");
+    expect(registerUserAccount).toHaveBeenCalledWith(
+      db,
+      "test@example.com",
+      "password123",
+    );
+    expect(buildAuthResult).toHaveBeenCalledWith(
+      mockPrismaUser,
+      testConfig.jwtSecret,
+    );
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: true,
         data: { email: "test@example.com", role: "user" },
-        token: expect.any(String),
+        token: "test-token",
       }),
     );
   });
 
   it("returns 409 when email already exists", async () => {
-    const error = new Prisma.PrismaClientKnownRequestError("dup", {
-      code: "P2002",
-      clientVersion: "test",
-    });
-    vi.mocked(db.user.create).mockRejectedValue(error);
+    vi.mocked(registerUserAccount).mockRejectedValue(
+      new UserAlreadyExistsError(),
+    );
 
     const req = createMockReq({
       email: "test@example.com",
@@ -83,21 +101,54 @@ describe("registerUser", () => {
       message: "User already exists",
     });
   });
+
+  it("returns 500 on unexpected error", async () => {
+    vi.mocked(registerUserAccount).mockRejectedValue(new Error("db down"));
+
+    const req = createMockReq({
+      email: "test@example.com",
+      password: "password123",
+    });
+    const res = createMockRes();
+
+    await registerUser(db, testConfig)(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({
+      success: false,
+      message: "Failed to create user",
+    });
+  });
 });
 
-describe("loginUser", () => {
+describe("loginUser route", () => {
   const db = createMockDb();
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("returns 401 for unknown user", async () => {
-    vi.mocked(db.user.findUnique).mockResolvedValue(null);
+  it("returns 400 for invalid email", async () => {
+    const req = createMockReq({
+      email: "not-an-email",
+      password: "password123",
+    });
+    const res = createMockRes();
+
+    await loginUser(db, testConfig)(req, res);
+
+    expect(authenticateUser).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it("returns 401 for invalid credentials", async () => {
+    vi.mocked(authenticateUser).mockRejectedValue(
+      new InvalidCredentialsError(),
+    );
 
     const req = createMockReq({
-      email: "missing@example.com",
-      password: "password123",
+      email: "test@example.com",
+      password: "wrongpassword",
     });
     const res = createMockRes();
 
@@ -110,38 +161,12 @@ describe("loginUser", () => {
     });
   });
 
-  it("returns 401 for wrong password", async () => {
-    vi.mocked(db.user.findUnique).mockResolvedValue({
-      id: 1,
-      email: "test@example.com",
-      role: "USER",
-      passwordHash: "hashed-password",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-    vi.mocked(verifyPassword).mockResolvedValue(false);
-
-    const req = createMockReq({
-      email: "test@example.com",
-      password: "wrongpassword",
-    });
-    const res = createMockRes();
-
-    await loginUser(db, testConfig)(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(401);
-  });
-
   it("returns 200 and token on success", async () => {
-    vi.mocked(db.user.findUnique).mockResolvedValue({
-      id: 1,
-      email: "test@example.com",
-      role: "USER",
-      passwordHash: "hashed-password",
-      createdAt: new Date(),
-      updatedAt: new Date(),
+    vi.mocked(authenticateUser).mockResolvedValue(mockPrismaUser);
+    vi.mocked(buildAuthResult).mockReturnValue({
+      user: { email: "test@example.com", role: "user" },
+      token: "test-token",
     });
-    vi.mocked(verifyPassword).mockResolvedValue(true);
 
     const req = createMockReq({
       email: "test@example.com",
@@ -151,13 +176,36 @@ describe("loginUser", () => {
 
     await loginUser(db, testConfig)(req, res);
 
+    expect(authenticateUser).toHaveBeenCalledWith(
+      db,
+      "test@example.com",
+      "password123",
+    );
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({
         success: true,
-        token: expect.any(String),
+        token: "test-token",
         data: { email: "test@example.com", role: "user" },
       }),
     );
+  });
+
+  it("returns 500 on unexpected error", async () => {
+    vi.mocked(authenticateUser).mockRejectedValue(new Error("db down"));
+
+    const req = createMockReq({
+      email: "test@example.com",
+      password: "password123",
+    });
+    const res = createMockRes();
+
+    await loginUser(db, testConfig)(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({
+      success: false,
+      message: "Failed to log in",
+    });
   });
 });

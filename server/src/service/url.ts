@@ -3,9 +3,9 @@ import {
   UrlRecord as PrismaUrlRecord,
   Prisma,
 } from "../generated/prisma/client";
-import { generateShortCode } from "../util/tools";
+import { generateShortCode } from "../util/";
 import { toExposedUrlRecord } from "../exposed/url";
-import { UrlRecord as PublicUrl } from "@mochiroute/shared";
+import { ListQueryOptions, UrlRecord as PublicUrl } from "@mochiroute/shared";
 
 const MAX_GENERATION_RETRIES = 3;
 
@@ -26,11 +26,16 @@ export class UrlNotFoundError extends Error {
 export async function createUrlRecord(
   db: PrismaClient,
   originalURL: string,
+  userId?: number,
 ): Promise<PrismaUrlRecord> {
   for (let i = 0; i < MAX_GENERATION_RETRIES; i++) {
     try {
       return await db.urlRecord.create({
-        data: { originalURL, shortCode: generateShortCode(7) },
+        data: {
+          originalURL,
+          shortCode: generateShortCode(7),
+          userId: userId ?? null,
+        },
       });
     } catch (error) {
       if (
@@ -91,21 +96,42 @@ async function incrementUrlClicks(
 export async function getUrlRecord(
   db: PrismaClient,
   urlId: number,
+  userId: number,
 ): Promise<PublicUrl> {
   let url: PrismaUrlRecord;
   try {
-    url = await findUrlRecordById(db, urlId);
+    url = await findUrlRecordById(db, urlId, userId);
     return toExposedUrlRecord(url);
   } catch (error) {
     throw error;
   }
 }
 
+export async function getUrlsRecord(
+  db: PrismaClient,
+  userId: number,
+  { page, pageLength }: ListQueryOptions,
+): Promise<{ urls: PublicUrl[]; count: number }> {
+  const [urls, count] = await Promise.all([
+    db.urlRecord.findMany({
+      where: { userId: userId },
+      orderBy: { createdAt: "desc" },
+      take: pageLength,
+      skip: (page - 1) * pageLength,
+    }),
+    db.urlRecord.count({ where: { userId: userId } }),
+  ]);
+  return { urls: urls.map(toExposedUrlRecord), count: count };
+}
+
 async function findUrlRecordById(
   db: PrismaClient,
   urlId: number,
+  userId: number,
 ): Promise<PrismaUrlRecord> {
-  const url = await db.urlRecord.findUnique({ where: { id: urlId } });
+  const url = await db.urlRecord.findUnique({
+    where: { id: urlId, userId: userId },
+  });
   if (!url) throw new UrlNotFoundError();
   return url;
 }
@@ -114,6 +140,7 @@ async function findUrlRecordById(
 export async function deleteUrlRecord(
   db: PrismaClient,
   urlId: number,
+  userId: number,
 ): Promise<void> {
-  await db.urlRecord.deleteMany({ where: { id: urlId } });
+  await db.urlRecord.deleteMany({ where: { id: urlId, userId: userId } });
 }

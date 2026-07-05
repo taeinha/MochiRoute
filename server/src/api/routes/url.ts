@@ -6,6 +6,8 @@ import {
   CreateUrlResponse,
   shortCodeParamSchema,
   urlIdParamSchema,
+  UrlListResponse,
+  listQuerySchema,
 } from "@mochiroute/shared";
 import { writeErrorResponse } from "./write";
 import { Config } from "../../config";
@@ -16,8 +18,10 @@ import {
   resolveRedirect,
   UrlNotFoundError,
   getUrlRecord,
+  getUrlsRecord,
   deleteUrlRecord,
 } from "../../service/url";
+import { AuthenticatedRequest } from "../../middleware/auth";
 
 export const createUrl =
   (db: PrismaClient, config: Config) => async (req: Request, res: Response) => {
@@ -25,11 +29,12 @@ export const createUrl =
     if (!validationResult.success) {
       return writeErrorResponse(res, validationResult.error.message, 400);
     }
-
+    const { user } = req as AuthenticatedRequest;
     try {
       const newUrl = await createUrlRecord(
         db,
         validationResult.data.originalUrl,
+        user?.userId,
       );
 
       const response: ApiResponse<CreateUrlResponse> = {
@@ -72,8 +77,9 @@ export const getUrl =
       return writeErrorResponse(res, validationResult.error.message, 400);
     }
     const { id } = validationResult.data;
+    const { user } = req as AuthenticatedRequest;
     try {
-      const url = await getUrlRecord(db, Number(id));
+      const url = await getUrlRecord(db, Number(id), user?.userId);
       return res.json({
         success: true,
         message: "URL fetched successfully",
@@ -86,15 +92,42 @@ export const getUrl =
     }
   };
 
+export const getUrls =
+  (db: PrismaClient) => async (req: Request, res: Response) => {
+    const validationResult = listQuerySchema.safeParse(req.query);
+    if (!validationResult.success) {
+      return writeErrorResponse(res, validationResult.error.message, 400);
+    }
+
+    const { user } = req as AuthenticatedRequest;
+    try {
+      const { urls, count } = await getUrlsRecord(
+        db,
+        user.userId,
+        validationResult.data,
+      );
+      const response: UrlListResponse = {
+        success: true,
+        message: "URLs fetched successfully",
+        data: urls,
+        count: count,
+      };
+      return res.json(response);
+    } catch (e) {
+      return writeErrorResponse(res, "Failed to get URLs", 500);
+    }
+  };
+
 export const deleteUrl =
   (db: PrismaClient) => async (req: Request, res: Response) => {
     const validationResult = urlIdParamSchema.safeParse(req.params);
     if (!validationResult.success) {
       return writeErrorResponse(res, validationResult.error.message, 400);
     }
+    const { user } = req as AuthenticatedRequest;
     const { id } = validationResult.data;
     try {
-      await deleteUrlRecord(db, Number(id));
+      await deleteUrlRecord(db, Number(id), user?.userId);
       return res.json({
         success: true,
         message: "URL deleted successfully",

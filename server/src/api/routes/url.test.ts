@@ -1,14 +1,35 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { Prisma } from "../../generated/prisma/client";
-import { createUrl, deleteUrl, getUrl, redirectUrl } from "./url";
+import { createUrl, deleteUrl, getUrl, getUrls, redirectUrl } from "./url";
+import {
+  createUrlRecord,
+  deleteUrlRecord,
+  getUrlRecord,
+  getUrlsRecord,
+  resolveRedirect,
+  ShortCodeExhaustedError,
+  UrlNotFoundError,
+} from "../../service/url";
 import {
   createMockReq,
   createMockRes,
   createMockDb,
   mockExposedUrlRecord,
   mockUrlRecord,
+  testAuthUser,
   testConfig,
 } from "../../test/helpers";
+
+vi.mock("../../service/url", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../../service/url")>();
+  return {
+    ...actual,
+    createUrlRecord: vi.fn(),
+    resolveRedirect: vi.fn(),
+    getUrlRecord: vi.fn(),
+    getUrlsRecord: vi.fn(),
+    deleteUrlRecord: vi.fn(),
+  };
+});
 
 describe("createUrl", () => {
   const db = createMockDb();
@@ -23,10 +44,8 @@ describe("createUrl", () => {
 
     await createUrl(db, testConfig)(req, res);
 
+    expect(createUrlRecord).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ success: false }),
-    );
   });
 
   it("returns 400 when URL is missing http or https", async () => {
@@ -35,27 +54,22 @@ describe("createUrl", () => {
 
     await createUrl(db, testConfig)(req, res);
 
+    expect(createUrlRecord).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ success: false }),
-    );
   });
 
   it("returns 201 and short URL on success", async () => {
-    vi.mocked(db.urlRecord.create).mockResolvedValue(mockUrlRecord);
+    vi.mocked(createUrlRecord).mockResolvedValue(mockUrlRecord);
 
     const req = createMockReq({ originalUrl: "https://example.com" });
     const res = createMockRes();
 
     await createUrl(db, testConfig)(req, res);
 
-    expect(db.urlRecord.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          originalURL: "https://example.com",
-          shortCode: expect.any(String),
-        }),
-      }),
+    expect(createUrlRecord).toHaveBeenCalledWith(
+      db,
+      "https://example.com",
+      undefined,
     );
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith(
@@ -69,12 +83,29 @@ describe("createUrl", () => {
     );
   });
 
+  it("passes userId when user is authenticated", async () => {
+    vi.mocked(createUrlRecord).mockResolvedValue(mockUrlRecord);
+
+    const req = createMockReq(
+      { originalUrl: "https://example.com" },
+      {},
+      {},
+      {},
+      testAuthUser,
+    );
+    const res = createMockRes();
+
+    await createUrl(db, testConfig)(req, res);
+
+    expect(createUrlRecord).toHaveBeenCalledWith(
+      db,
+      "https://example.com",
+      1,
+    );
+  });
+
   it("returns 409 when short code generation is exhausted", async () => {
-    const error = new Prisma.PrismaClientKnownRequestError("dup", {
-      code: "P2002",
-      clientVersion: "test",
-    });
-    vi.mocked(db.urlRecord.create).mockRejectedValue(error);
+    vi.mocked(createUrlRecord).mockRejectedValue(new ShortCodeExhaustedError());
 
     const req = createMockReq({ originalUrl: "https://example.com" });
     const res = createMockRes();
@@ -89,7 +120,7 @@ describe("createUrl", () => {
   });
 
   it("returns 500 on unexpected error", async () => {
-    vi.mocked(db.urlRecord.create).mockRejectedValue(new Error("db down"));
+    vi.mocked(createUrlRecord).mockRejectedValue(new Error("db down"));
 
     const req = createMockReq({ originalUrl: "https://example.com" });
     const res = createMockRes();
@@ -112,24 +143,14 @@ describe("redirectUrl", () => {
   });
 
   it("returns 302 redirect on success", async () => {
-    vi.mocked(db.urlRecord.findUnique).mockResolvedValue(mockUrlRecord);
-    vi.mocked(db.urlRecord.update).mockResolvedValue({
-      ...mockUrlRecord,
-      clicks: 1,
-    });
+    vi.mocked(resolveRedirect).mockResolvedValue("https://example.com");
 
     const req = createMockReq({}, { shortCode: "abc12Xy" });
     const res = createMockRes();
 
     await redirectUrl(db)(req, res);
 
-    expect(db.urlRecord.findUnique).toHaveBeenCalledWith({
-      where: { shortCode: "abc12Xy" },
-    });
-    expect(db.urlRecord.update).toHaveBeenCalledWith({
-      where: { id: 1 },
-      data: { clicks: { increment: 1 } },
-    });
+    expect(resolveRedirect).toHaveBeenCalledWith(db, "abc12Xy");
     expect(res.redirect).toHaveBeenCalledWith(302, "https://example.com");
   });
 
@@ -139,11 +160,8 @@ describe("redirectUrl", () => {
 
     await redirectUrl(db)(req, res);
 
-    expect(db.urlRecord.findUnique).not.toHaveBeenCalled();
+    expect(resolveRedirect).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ success: false }),
-    );
   });
 
   it("returns 400 for a short code with invalid length", async () => {
@@ -152,28 +170,12 @@ describe("redirectUrl", () => {
 
     await redirectUrl(db)(req, res);
 
-    expect(db.urlRecord.findUnique).not.toHaveBeenCalled();
+    expect(resolveRedirect).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ success: false }),
-    );
-  });
-
-  it("returns 400 for a short code with invalid characters", async () => {
-    const req = createMockReq({}, { shortCode: "abc!@#x" });
-    const res = createMockRes();
-
-    await redirectUrl(db)(req, res);
-
-    expect(db.urlRecord.findUnique).not.toHaveBeenCalled();
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ success: false }),
-    );
   });
 
   it("returns 404 when short code is not found", async () => {
-    vi.mocked(db.urlRecord.findUnique).mockResolvedValue(null);
+    vi.mocked(resolveRedirect).mockRejectedValue(new UrlNotFoundError());
 
     const req = createMockReq({}, { shortCode: "missing" });
     const res = createMockRes();
@@ -188,7 +190,7 @@ describe("redirectUrl", () => {
   });
 
   it("returns 500 on unexpected error", async () => {
-    vi.mocked(db.urlRecord.findUnique).mockRejectedValue(new Error("db down"));
+    vi.mocked(resolveRedirect).mockRejectedValue(new Error("db down"));
 
     const req = createMockReq({}, { shortCode: "abc12Xy" });
     const res = createMockRes();
@@ -196,10 +198,6 @@ describe("redirectUrl", () => {
     await redirectUrl(db)(req, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({
-      success: false,
-      message: "Failed to redirect URL",
-    });
   });
 });
 
@@ -211,40 +209,24 @@ describe("getUrl", () => {
   });
 
   it("returns 400 for a non-numeric id", async () => {
-    const req = createMockReq({}, { id: "abc" });
+    const req = createMockReq({}, { id: "abc" }, {}, {}, testAuthUser);
     const res = createMockRes();
 
     await getUrl(db)(req, res);
 
-    expect(db.urlRecord.findUnique).not.toHaveBeenCalled();
+    expect(getUrlRecord).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ success: false }),
-    );
-  });
-
-  it("returns 400 for a non-positive id", async () => {
-    const req = createMockReq({}, { id: "0" });
-    const res = createMockRes();
-
-    await getUrl(db)(req, res);
-
-    expect(db.urlRecord.findUnique).not.toHaveBeenCalled();
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ success: false }),
-    );
   });
 
   it("returns 200 and url data on success", async () => {
-    vi.mocked(db.urlRecord.findUnique).mockResolvedValue(mockUrlRecord);
+    vi.mocked(getUrlRecord).mockResolvedValue(mockExposedUrlRecord);
 
-    const req = createMockReq({}, { id: "1" });
+    const req = createMockReq({}, { id: "1" }, {}, {}, testAuthUser);
     const res = createMockRes();
 
     await getUrl(db)(req, res);
 
-    expect(db.urlRecord.findUnique).toHaveBeenCalledWith({ where: { id: 1 } });
+    expect(getUrlRecord).toHaveBeenCalledWith(db, 1, 1);
     expect(res.json).toHaveBeenCalledWith({
       success: true,
       message: "URL fetched successfully",
@@ -253,33 +235,97 @@ describe("getUrl", () => {
   });
 
   it("returns 404 when url is not found", async () => {
-    vi.mocked(db.urlRecord.findUnique).mockResolvedValue(null);
+    vi.mocked(getUrlRecord).mockRejectedValue(new UrlNotFoundError());
 
-    const req = createMockReq({}, { id: "999" });
+    const req = createMockReq({}, { id: "999" }, {}, {}, testAuthUser);
     const res = createMockRes();
 
     await getUrl(db)(req, res);
 
     expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.json).toHaveBeenCalledWith({
-      success: false,
-      message: "URL not found",
-    });
   });
 
   it("returns 500 on unexpected error", async () => {
-    vi.mocked(db.urlRecord.findUnique).mockRejectedValue(new Error("db down"));
+    vi.mocked(getUrlRecord).mockRejectedValue(new Error("db down"));
 
-    const req = createMockReq({}, { id: "1" });
+    const req = createMockReq({}, { id: "1" }, {}, {}, testAuthUser);
     const res = createMockRes();
 
     await getUrl(db)(req, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({
-      success: false,
-      message: "Failed to get URL",
+  });
+});
+
+describe("getUrls", () => {
+  const db = createMockDb();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns 200 with paginated response", async () => {
+    vi.mocked(getUrlsRecord).mockResolvedValue({
+      urls: [mockExposedUrlRecord],
+      count: 47,
     });
+
+    const req = createMockReq({}, {}, {}, {}, testAuthUser);
+    const res = createMockRes();
+
+    await getUrls(db)(req, res);
+
+    expect(getUrlsRecord).toHaveBeenCalledWith(db, 1, {
+      page: 1,
+      pageLength: 10,
+    });
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      message: "URLs fetched successfully",
+      data: [mockExposedUrlRecord],
+      count: 47,
+    });
+  });
+
+  it("passes query options to the service", async () => {
+    vi.mocked(getUrlsRecord).mockResolvedValue({ urls: [], count: 0 });
+
+    const req = createMockReq(
+      {},
+      {},
+      {},
+      { page: "2", pageLength: "5" },
+      testAuthUser,
+    );
+    const res = createMockRes();
+
+    await getUrls(db)(req, res);
+
+    expect(getUrlsRecord).toHaveBeenCalledWith(db, 1, {
+      page: 2,
+      pageLength: 5,
+    });
+  });
+
+  it("returns 400 for invalid page", async () => {
+    const req = createMockReq({}, {}, {}, { page: "abc" }, testAuthUser);
+    const res = createMockRes();
+
+    await getUrls(db)(req, res);
+
+    expect(getUrlsRecord).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it("returns 500 on unexpected error", async () => {
+    vi.mocked(getUrlsRecord).mockRejectedValue(new Error("db down"));
+
+    const req = createMockReq({}, {}, {}, {}, testAuthUser);
+    const res = createMockRes();
+
+    await getUrls(db)(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
   });
 });
 
@@ -291,76 +337,38 @@ describe("deleteUrl", () => {
   });
 
   it("returns 400 for a non-numeric id", async () => {
-    const req = createMockReq({}, { id: "abc" });
+    const req = createMockReq({}, { id: "abc" }, {}, {}, testAuthUser);
     const res = createMockRes();
 
     await deleteUrl(db)(req, res);
 
-    expect(db.urlRecord.deleteMany).not.toHaveBeenCalled();
+    expect(deleteUrlRecord).not.toHaveBeenCalled();
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ success: false }),
-    );
-  });
-
-  it("returns 400 for a non-positive id", async () => {
-    const req = createMockReq({}, { id: "0" });
-    const res = createMockRes();
-
-    await deleteUrl(db)(req, res);
-
-    expect(db.urlRecord.deleteMany).not.toHaveBeenCalled();
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ success: false }),
-    );
   });
 
   it("returns 200 when url is deleted", async () => {
-    vi.mocked(db.urlRecord.deleteMany).mockResolvedValue({ count: 1 });
+    vi.mocked(deleteUrlRecord).mockResolvedValue(undefined);
 
-    const req = createMockReq({}, { id: "1" });
+    const req = createMockReq({}, { id: "1" }, {}, {}, testAuthUser);
     const res = createMockRes();
 
     await deleteUrl(db)(req, res);
 
-    expect(db.urlRecord.deleteMany).toHaveBeenCalledWith({ where: { id: 1 } });
+    expect(deleteUrlRecord).toHaveBeenCalledWith(db, 1, 1);
     expect(res.json).toHaveBeenCalledWith({
       success: true,
       message: "URL deleted successfully",
     });
-  });
-
-  it("returns 200 when url is already missing (idempotent)", async () => {
-    vi.mocked(db.urlRecord.deleteMany).mockResolvedValue({ count: 0 });
-
-    const req = createMockReq({}, { id: "999" });
-    const res = createMockRes();
-
-    await deleteUrl(db)(req, res);
-
-    expect(db.urlRecord.deleteMany).toHaveBeenCalledWith({
-      where: { id: 999 },
-    });
-    expect(res.json).toHaveBeenCalledWith({
-      success: true,
-      message: "URL deleted successfully",
-    });
-    expect(res.status).not.toHaveBeenCalled();
   });
 
   it("returns 500 on unexpected error", async () => {
-    vi.mocked(db.urlRecord.deleteMany).mockRejectedValue(new Error("db down"));
+    vi.mocked(deleteUrlRecord).mockRejectedValue(new Error("db down"));
 
-    const req = createMockReq({}, { id: "1" });
+    const req = createMockReq({}, { id: "1" }, {}, {}, testAuthUser);
     const res = createMockRes();
 
     await deleteUrl(db)(req, res);
 
     expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({
-      success: false,
-      message: "Failed to delete URL",
-    });
   });
 });

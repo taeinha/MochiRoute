@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { createUrlSchema } from "./validations";
+import { ApiResponse } from "./write";
 
 export interface UrlRecord {
   id: number;
@@ -17,8 +18,7 @@ export interface CreateUrlResponse {
   originalUrl: string;
 }
 
-export interface UrlListResponse {
-  urls: UrlRecord[];
+export interface UrlListResponse extends ApiResponse<UrlRecord[]> {
   count: number;
 }
 
