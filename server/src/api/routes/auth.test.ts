@@ -14,6 +14,7 @@ import {
   testConfig,
 } from "../../test/helpers";
 import { createMockDb } from "../../test/helpers";
+import { logger } from "../../lib/logger";
 
 vi.mock("../../service/auth", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../service/auth")>();
@@ -23,6 +24,10 @@ vi.mock("../../service/auth", async (importOriginal) => {
     authenticateUser: vi.fn(),
     buildAuthResult: vi.fn(),
   };
+});
+
+beforeEach(() => {
+  vi.spyOn(logger, "error").mockImplementation(() => {});
 });
 
 describe("registerUser route", () => {
