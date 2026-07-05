@@ -25,6 +25,11 @@ export const createApp = (config: Config, db: PrismaClient): Express => {
     app.use(cors());
   }
 
+  // needed for rate limited so req.ip is set to the correct IP
+  if (!isDevelopment()) {
+    app.set("trust proxy", 1);
+  }
+
   app.use(express.json());
 
   attachRoutes(app, config, db);
