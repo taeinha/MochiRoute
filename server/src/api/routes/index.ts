@@ -43,4 +43,12 @@ export function attachRoutes(app: Express, config: Config, db: PrismaClient) {
       res.sendFile(path.join(CLIENT_DIST, "index.html"));
     });
   }
+
+  // 404 for all other api routes
+  app.use("/api", (_req, res) => {
+    res.status(404).json({
+      success: false,
+      message: "Not found",
+    });
+  });
 }
