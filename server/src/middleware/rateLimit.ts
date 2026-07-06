@@ -1,5 +1,6 @@
 import rateLimit from "express-rate-limit";
 import { ApiResponse } from "@mochiroute/shared";
+import type { Request, Response } from "express";
 
 const rateLimitResponse = {
   success: false,
@@ -10,7 +11,7 @@ const baseOptions = {
   standardHeaders: true,
   legacyHeaders: false,
   skip: () => process.env.NODE_ENV === "test",
-  handler: (_req, res) => {
+  handler: (_req: Request, res: Response) => {
     res.status(429).json(rateLimitResponse);
   },
 };

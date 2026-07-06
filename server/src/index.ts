@@ -15,17 +15,25 @@ const server = app.listen(config.port, () => {
   console.log(`Server is running on port ${config.port}`);
 });
 
+let isShuttingDown = false;
+
 async function shutdown(signal: string) {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
   console.log(`${signal} received, shutting down gracefully`);
-  server.close(async () => {
-    await prisma.$disconnect();
-    process.exit(0);
-  });
-  // Force exit if graceful shutdown takes too long
   setTimeout(() => {
     console.error("Forced shutdown after timeout");
     process.exit(1);
   }, 10_000).unref();
+  server.close(() => {
+    void prisma
+      .$disconnect()
+      .then(() => process.exit(0))
+      .catch((error) => {
+        console.error("Error during shutdown", error);
+        process.exit(1);
+      });
+  });
 }
 
 process.on("SIGTERM", () => shutdown("SIGTERM"));
