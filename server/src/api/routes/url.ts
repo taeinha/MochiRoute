@@ -63,7 +63,7 @@ export const redirectUrl =
     const { shortCode } = validationResult.data;
 
     try {
-      const originalURL = await resolveRedirect(db, shortCode as string);
+      const originalURL = await resolveRedirect(db, shortCode);
       return res.redirect(302, originalURL);
     } catch (error) {
       if (error instanceof UrlNotFoundError)
