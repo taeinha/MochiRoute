@@ -1,57 +1,60 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 120" fill="none" role="img" aria-label="MochiRoute logo">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 96" fill="none" role="img" aria-label="MochiRoute logo">
   <title>MochiRoute</title>
-  <!-- Cat head -->
-  <g transform="translate(8, 6)">
-    <!-- Ears -->
-    <path d="M18 28 L8 4 L32 18 Z" fill="#E07A2F"/>
-    <path d="M18 28 L8 4 L20 16 Z" fill="#F4C9A0"/>
-    <path d="M70 28 L80 4 L56 18 Z" fill="#E07A2F"/>
-    <path d="M70 28 L80 4 L68 16 Z" fill="#F4C9A0"/>
+  <style>
+    .word-mochi { fill: #D97028; }
+    .word-route { fill: #F09040; }
+    @media (prefers-color-scheme: dark) {
+      .word-mochi { fill: #FFBC7A; }
+      .word-route { fill: #FFD9A8; }
+    }
+  </style>
 
-    <!-- Head base -->
-    <ellipse cx="44" cy="52" rx="38" ry="36" fill="#E8853A"/>
+  <!-- Running cat (left → right) -->
+  <g transform="translate(4, 10)">
+    <!-- Tail -->
+    <path d="M8 34 Q-2 18 6 6 Q12 -2 18 4" stroke="#D97028" stroke-width="5" stroke-linecap="round" fill="none"/>
 
-    <!-- White muzzle patch -->
-    <ellipse cx="44" cy="62" rx="22" ry="18" fill="#FEFEFE"/>
+    <!-- Back leg -->
+    <ellipse cx="22" cy="58" rx="5" ry="9" fill="#D97028" transform="rotate(-25 22 58)"/>
+    <!-- Front leg -->
+    <ellipse cx="62" cy="56" rx="5" ry="8" fill="#D97028" transform="rotate(35 62 56)"/>
 
-    <!-- Tabby forehead stripes -->
-    <path d="M30 30 Q44 22 58 30" stroke="#1A1A1A" stroke-width="2.5" stroke-linecap="round" fill="none"/>
-    <path d="M34 24 Q44 18 54 24" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round" fill="none"/>
-    <path d="M26 38 L34 34" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
-    <path d="M62 38 L54 34" stroke="#1A1A1A" stroke-width="2" stroke-linecap="round"/>
+    <!-- Body -->
+    <ellipse cx="38" cy="42" rx="30" ry="18" fill="#F09040" transform="rotate(-8 38 42)"/>
 
-    <!-- Cheek tabby marks -->
-    <path d="M18 50 Q14 58 18 66" stroke="#D4622A" stroke-width="3" stroke-linecap="round" fill="none"/>
-    <path d="M70 50 Q74 58 70 66" stroke="#D4622A" stroke-width="3" stroke-linecap="round" fill="none"/>
+    <!-- White belly -->
+    <ellipse cx="40" cy="46" rx="18" ry="10" fill="#FFF5EB" transform="rotate(-8 40 46)"/>
 
-    <!-- Eyes (exotic shorthair: large, round) -->
-    <ellipse cx="30" cy="48" rx="9" ry="10" fill="#1A1A1A"/>
-    <ellipse cx="58" cy="48" rx="9" ry="10" fill="#1A1A1A"/>
-    <circle cx="32" cy="46" r="3" fill="#FEFEFE"/>
-    <circle cx="60" cy="46" r="3" fill="#FEFEFE"/>
-    <circle cx="33" cy="45" r="1.2" fill="#1A1A1A"/>
+    <!-- Back stripe -->
+    <path d="M16 36 Q30 30 48 34" stroke="#D97028" stroke-width="3" stroke-linecap="round" fill="none"/>
 
-    <!-- Flat nose -->
-    <ellipse cx="44" cy="58" rx="4" ry="3" fill="#1A1A1A"/>
-    <path d="M44 61 L44 66" stroke="#1A1A1A" stroke-width="1.5" stroke-linecap="round"/>
-    <path d="M44 66 Q40 69 37 68" stroke="#1A1A1A" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-    <path d="M44 66 Q48 69 51 68" stroke="#1A1A1A" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+    <!-- Head -->
+    <circle cx="68" cy="32" r="16" fill="#F09040"/>
 
-    <!-- Whiskers -->
-    <path d="M20 60 L4 58" stroke="#1A1A1A" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
-    <path d="M20 64 L4 66" stroke="#1A1A1A" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
-    <path d="M68 60 L84 58" stroke="#1A1A1A" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
-    <path d="M68 64 L84 66" stroke="#1A1A1A" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+    <!-- White muzzle -->
+    <ellipse cx="78" cy="36" rx="9" ry="7" fill="#FFF5EB"/>
 
-    <!-- White chest -->
-    <ellipse cx="44" cy="84" rx="16" ry="8" fill="#FEFEFE"/>
+    <!-- Ear -->
+    <path d="M58 20 L54 8 L66 18 Z" fill="#D97028"/>
+    <path d="M72 18 L76 6 L80 16 Z" fill="#D97028"/>
+
+    <!-- Goofy eye -->
+    <circle cx="74" cy="28" r="5.5" fill="#FFF5EB"/>
+    <circle cx="76" cy="28" r="3" fill="#8B5A3C"/>
+    <circle cx="77" cy="27" r="1" fill="#FFF5EB"/>
+
+    <!-- Nose -->
+    <ellipse cx="82" cy="35" rx="2.5" ry="2" fill="#8B5A3C"/>
+
+    <!-- Tongue -->
+    <ellipse cx="80" cy="40" rx="2" ry="3" fill="#FF8FA8"/>
+
+    <!-- Front paw -->
+    <ellipse cx="76" cy="54" rx="5" ry="7" fill="#F09040" transform="rotate(20 76 54)"/>
   </g>
 
-  <!-- Route path accent (subtle curved line suggesting a route) -->
-  <path d="M108 88 Q160 60 210 72 T320 64" stroke="#E8853A" stroke-width="3" stroke-linecap="round" fill="none" opacity="0.35"/>
-
-  <!-- MochiRoute text -->
-  <text x="108" y="68" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="38" font-weight="700" letter-spacing="-0.5">
-    <tspan fill="#1A1A1A">Mochi</tspan><tspan fill="#E8853A">Route</tspan>
+  <!-- Wordmark -->
+  <text x="118" y="62" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="34" font-weight="700" letter-spacing="-0.5">
+    <tspan class="word-mochi">Mochi</tspan><tspan class="word-route">Route</tspan>
   </text>
 </svg>
