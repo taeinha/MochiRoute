@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { registerSchema, loginSchema } from "./validations/auth";
+import {
+  registerSchema,
+  loginSchema,
+  tokenPayloadSchema,
+} from "./validations/auth";
 import { ApiResponse } from "./write";
 
 export interface User {
@@ -13,3 +17,4 @@ export interface AuthResponse extends ApiResponse<User> {
 
 export type RegisterRequest = z.infer<typeof registerSchema>;
 export type LoginRequest = z.infer<typeof loginSchema>;
+export type TokenPayload = z.infer<typeof tokenPayloadSchema>;
