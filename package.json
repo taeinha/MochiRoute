@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build:shared": "npm run build -w shared",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npm run build -w shared && npm run build -w client",
+    "test": "npm run test -w server",
+    "typecheck": "npm exec -w server -- tsc --noEmit"
   },
   "keywords": [],
   "author": "",
