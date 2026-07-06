@@ -6,16 +6,25 @@ export interface Config {
 }
 
 export const getConfig = (): Config => {
+  const port = parseInt(process.env.PORT || "3000");
   return {
-    databaseUrl: process.env.DATABASE_URL || "",
-    jwtSecret: process.env.JWT_SECRET || "",
-    port: parseInt(process.env.PORT || "3000"),
+    databaseUrl: requireEnv("DATABASE_URL"),
+    jwtSecret: requireEnv("JWT_SECRET"),
+    port: port,
     baseUrl: isDevelopment()
-      ? `http://localhost:${process.env.PORT || "3000"}`
-      : process.env.BASE_URL || "",
+      ? `http://localhost:${port}`
+      : requireEnv("BASE_URL"),
   };
 };
 
 export const isDevelopment = (): boolean => {
   return process.env.NODE_ENV !== "production";
+};
+
+const requireEnv = (name: string): string => {
+  const value = process.env[name];
+  if (!value?.trim()) {
+    throw new Error(`Environment variable ${name} is not set`);
+  }
+  return value.trim();
 };

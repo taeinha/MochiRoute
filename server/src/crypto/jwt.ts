@@ -1,14 +1,19 @@
 import jwt from "jsonwebtoken";
-
-export type TokenPayload = { userId: number; email: string; role: string };
+import { tokenPayloadSchema, TokenPayload } from "@mochiroute/shared";
 
 export function signToken(
   payload: { userId: number; email: string; role: string },
   secret: string,
 ) {
-  return jwt.sign(payload, secret, { expiresIn: "7d" });
+  return jwt.sign(payload, secret, { expiresIn: "7d", algorithm: "HS256" });
 }
 
 export function verifyToken(token: string, secret: string): TokenPayload {
-  return jwt.verify(token, secret) as TokenPayload;
+  const decoded = jwt.verify(token, secret, { algorithms: ["HS256"] });
+
+  if (typeof decoded === "string") {
+    throw new Error("Invalid token");
+  }
+
+  return tokenPayloadSchema.parse(decoded);
 }

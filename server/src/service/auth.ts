@@ -29,7 +29,11 @@ export async function registerUser(
   try {
     const hashedPassword = await hashPassword(password);
     const user = await db.user.create({
-      data: { email, passwordHash: hashedPassword, role: "USER" },
+      data: {
+        email: email.trim().toLowerCase(),
+        passwordHash: hashedPassword,
+        role: "USER",
+      },
     });
     return user;
   } catch (error) {
@@ -48,7 +52,9 @@ export async function authenticateUser(
   email: string,
   password: string,
 ): Promise<PrismaUser> {
-  const user = await db.user.findUnique({ where: { email } });
+  const user = await db.user.findUnique({
+    where: { email: email.trim().toLowerCase() },
+  });
   const valid = user && (await verifyPassword(password, user.passwordHash));
   if (!valid) throw new InvalidCredentialsError();
   return user;

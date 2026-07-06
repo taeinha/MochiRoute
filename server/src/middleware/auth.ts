@@ -1,8 +1,8 @@
-import jwt from "jsonwebtoken";
 import { Config } from "../config";
 import { Request, Response, NextFunction } from "express";
 import { writeErrorResponse } from "../api/routes/write";
-import { TokenPayload, verifyToken } from "../crypto/jwt";
+import { verifyToken } from "../crypto/jwt";
+import { TokenPayload } from "@mochiroute/shared";
 
 export type AuthenticatedRequest = Request & { user: TokenPayload };
 

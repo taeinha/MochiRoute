@@ -54,13 +54,8 @@ export async function resolveRedirect(
   db: PrismaClient,
   shortCode: string,
 ): Promise<string> {
-  let url: PrismaUrlRecord;
-  try {
-    url = await findUrlRecordByShortCode(db, shortCode);
-    await incrementUrlClicks(db, url.id);
-  } catch (error) {
-    throw error;
-  }
+  const url = await findUrlRecordByShortCode(db, shortCode);
+  await incrementUrlClicks(db, url.id);
   return url.originalURL;
 }
 
@@ -98,13 +93,8 @@ export async function getUrlRecord(
   urlId: number,
   userId: number,
 ): Promise<PublicUrl> {
-  let url: PrismaUrlRecord;
-  try {
-    url = await findUrlRecordById(db, urlId, userId);
-    return toExposedUrlRecord(url);
-  } catch (error) {
-    throw error;
-  }
+  const url = await findUrlRecordById(db, urlId, userId);
+  return toExposedUrlRecord(url);
 }
 
 export async function getUrlsRecord(

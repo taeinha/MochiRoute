@@ -5,6 +5,7 @@ import { Config } from "../config";
 import { PrismaClient } from "../generated/prisma/client";
 import { attachRoutes } from "./routes";
 import { logger } from "../lib/logger";
+import { isDevelopment } from "../config/";
 
 export const createApp = (config: Config, db: PrismaClient): Express => {
   const app = express();
@@ -20,7 +21,15 @@ export const createApp = (config: Config, db: PrismaClient): Express => {
     }),
   );
 
-  app.use(cors());
+  if (isDevelopment()) {
+    app.use(cors());
+  }
+
+  // needed for rate limited so req.ip is set to the correct IP
+  if (!isDevelopment()) {
+    app.set("trust proxy", 1);
+  }
+
   app.use(express.json());
 
   attachRoutes(app, config, db);

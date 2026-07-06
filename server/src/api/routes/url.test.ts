@@ -18,6 +18,7 @@ import {
   testAuthUser,
   testConfig,
 } from "../../test/helpers";
+import { logger } from "../../lib/logger";
 
 vi.mock("../../service/url", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../service/url")>();
@@ -29,6 +30,10 @@ vi.mock("../../service/url", async (importOriginal) => {
     getUrlsRecord: vi.fn(),
     deleteUrlRecord: vi.fn(),
   };
+});
+
+beforeEach(() => {
+  vi.spyOn(logger, "error").mockImplementation(() => {});
 });
 
 describe("createUrl", () => {
@@ -97,11 +102,7 @@ describe("createUrl", () => {
 
     await createUrl(db, testConfig)(req, res);
 
-    expect(createUrlRecord).toHaveBeenCalledWith(
-      db,
-      "https://example.com",
-      1,
-    );
+    expect(createUrlRecord).toHaveBeenCalledWith(db, "https://example.com", 1);
   });
 
   it("returns 409 when short code generation is exhausted", async () => {
