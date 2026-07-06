@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "npm run build -w shared && npm run build -w client",
-    "test": "npm run test -w server",
+    "test": "npm run test -w server && npm run test -w client",
     "typecheck": "npm exec -w server -- tsc --noEmit"
   },
   "keywords": [],
@@ -17,5 +17,8 @@
     "client",
     "server",
     "shared"
-  ]
+  ],
+  "allowScripts": {
+    "cypress@15.18.0": true
+  }
 }
