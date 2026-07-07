@@ -32,12 +32,12 @@ The backend is production-hardened (rate limiting, graceful shutdown, scoped aut
 
 **Client**
 
-- **Pages**: route-level views (`Home`, login/register and dashboard planned)
-- **Layouts**: `FullLayout` with navbar and outlet for child routes
-- **Store**: `auth` and `custom` slices (theme, layout dimensions)
+- **Pages**: route-level views (Home, login/register and dashboard planned)
+- **Layouts**: FullLayout with navbar and outlet for child routes
+- **Store**: auth and custom slices (theme, layout dimensions)
 - **Theme**: MUI light/dark mode driven by Redux
 
-In production, the server serves the built client from `client/dist` as a single deploy unit. No separate frontend host is required.
+In production, the server serves the built client from client/dist as a single deploy unit. No separate frontend host is required.
 
 ### Local development
 
@@ -67,9 +67,9 @@ npm run dev -w client
 | -------------- | -------- | ------------------------------- |
 | `DATABASE_URL` | Yes      | PostgreSQL connection string    |
 | `JWT_SECRET`   | Yes      | Secret for signing JWTs         |
-| `PORT`         | No       | Server port; default `3000`     |
+| `PORT`         | No       | Server port; default 3000     |
 | `BASE_URL`     | Prod     | Public base URL for short links |
-| `NODE_ENV`     | No       | `development` or `production`   |
+| `NODE_ENV`     | No       | development or production   |
 
 ```bash
 npm run test -w server    # Server Vitest suites
@@ -119,10 +119,10 @@ npm run db:studio -w server
 
 **Create URL behavior**
 
-- **Authenticated**: link tied to `userId`, appears in dashboard
-- **Anonymous**: `userId: null`; redirect works, not listed in dashboard (by design)
+- **Authenticated**: link tied to userId, appears in dashboard
+- **Anonymous**: userId: null; redirect works, not listed in dashboard (by design)
 - Short codes are 7 alphanumeric characters
-- Validation via shared Zod schemas (`createUrlSchema`, etc.)
+- Validation via shared Zod schemas (createUrlSchema, etc.)
 
 #### Rate limiting
 
@@ -134,7 +134,7 @@ npm run db:studio -w server
 
 #### Error handling
 
-- JSON `404` for unknown `/api/*` routes
+- JSON 404 for unknown /api/* routes
 - Config fail-fast on missing required env vars
 - Structured logging via Morgan → custom logger
 
@@ -175,19 +175,19 @@ Vitest suites across routes, services, middleware, crypto, and config.
 
 ### Stack
 
-| Layer        | Server                           | Client                                      |
-| ------------ | -------------------------------- | ------------------------------------------- |
-| Runtime      | Node.js, TypeScript              | Browser, TypeScript                         |
-| Framework    | Express 5                        | React 19, Vite 8                            |
-| UI           | N/A                              | MUI 9, Emotion, Tabler Icons                |
-| State        | N/A                              | Redux Toolkit                               |
-| Routing      | Express routes                   | React Router 7                              |
-| Database     | PostgreSQL, Prisma 7             | N/A                                         |
-| Auth         | JWT, bcrypt                      | Redux auth slice (API wiring in progress)     |
-| Validation   | Zod (`@mochiroute/shared`)       | Zod (`@mochiroute/shared`)                  |
-| Testing      | Vitest                           | Vitest, Testing Library, Cypress (installed)  |
-| Hardening    | Rate limits, CORS (dev), trust proxy | Route guard, lazy loading               |
-| CI           | Typecheck, test, build, lint     | Build, lint (GitHub Actions on `main`)      |
+| Layer        | Server                               | Client                                      |
+| ------------ | ------------------------------------ | ------------------------------------------- |
+| Runtime      | Node.js, TypeScript                  | Browser, TypeScript                         |
+| Framework    | Express 5                            | React 19, Vite 8                            |
+| UI           | N/A                                  | MUI 9, Emotion, Tabler Icons                |
+| State        | N/A                                  | Redux Toolkit                               |
+| Routing      | Express routes                       | React Router 7                              |
+| Database     | PostgreSQL, Prisma 7                 | N/A                                         |
+| Auth         | JWT, bcrypt                          | Redux auth slice (API wiring in progress)   |
+| Validation   | Zod (@mochiroute/shared)             | Zod (@mochiroute/shared)                    |
+| Testing      | Vitest                               | Vitest, Testing Library, Cypress (installed)|
+| Hardening    | Rate limits, CORS (dev), trust proxy | Route guard, lazy loading                   |
+| CI           | Typecheck, test, build, lint         | Build, lint (GitHub Actions on main)        |
 
 ### Technical challenges addressed
 
