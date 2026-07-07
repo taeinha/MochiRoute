@@ -21,15 +21,20 @@
     "@mui/icons-material": "^9.2.0",
     "@mui/material": "^9.2.0",
     "@reduxjs/toolkit": "^2.12.0",
+    "@tabler/icons-react": "^3.44.0",
+    "lodash": "^4.18.1",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "react-redux": "^9.3.0"
+    "react-helmet-async": "^3.0.0",
+    "react-redux": "^9.3.0",
+    "react-router-dom": "^7.18.1"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
+    "@types/lodash": "^4.17.24",
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
