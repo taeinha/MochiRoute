@@ -26,23 +26,11 @@ The backend is production-hardened (rate limiting, graceful shutdown, scoped aut
 
 **Server**
 
-```
-routes → service → exposed (DTO mapping)
-         ↑
-    shared validations (Zod)
-```
-
 - **Routes**: HTTP handlers, auth middleware, rate limiting
 - **Service**: business logic (auth, URL creation, redirects)
 - **Exposed**: shapes API responses (no password hashes, etc.)
 
 **Client**
-
-```
-pages → components → store (Redux)
-         ↑
-    shared validations (Zod)
-```
 
 - **Pages**: route-level views (`Home`, login/register and dashboard planned)
 - **Layouts**: `FullLayout` with navbar and outlet for child routes
@@ -116,9 +104,8 @@ npm run db:studio -w server
 | `POST` | `/api/register` | No   | Create account     |
 | `POST` | `/api/login`    | No   | Login, returns JWT |
 
-- Passwords hashed with `bcrypt`
-- JWTs signed with `HS256` (algorithm pinned)
-- Emails normalized (`trim` + `lowerCase`)
+- Passwords hashed with bcrypt
+- JWTs signed with HS256 (algorithm pinned)
 
 #### URL shortening
 
@@ -153,7 +140,7 @@ npm run db:studio -w server
 
 #### Test coverage
 
-Vitest suites across routes, services, middleware, crypto, and config (12 test files).
+Vitest suites across routes, services, middleware, crypto, and config.
 
 ---
 
@@ -161,13 +148,13 @@ Vitest suites across routes, services, middleware, crypto, and config (12 test f
 
 #### Implemented
 
-- **App shell**: `BrowserRouter`, Redux `Provider`, MUI `ThemeProvider`, `CssBaseline`
-- **Routing**: `useRoutes` with lazy-loaded `FullLayout` and `Home` via `Loadable` + `Suspense`
-- **Auth guard**: redirects unauthenticated users away from protected routes (`Navigate` to `/login`)
+- **App shell**: BrowserRouter, Redux Provider, MUI ThemeProvider, CssBaseline
+- **Routing**: useRoutes with lazy-loaded FullLayout and Home via Loadable + Suspense
+- **Auth guard**: redirects unauthenticated users away from protected routes (Navigate to /login)
 - **Layout**: sticky navbar with logo, dark/light toggle, login/signup buttons
-- **Theming**: light/dark palettes; toggle persisted in Redux (`custom` slice)
-- **Components**: `Logo`, `Navbar`, `LoginButtons`, `PageContainer`, `ParentCard`, `ShortenForm` (WIP), `Spinner`
-- **Shared validation**: `ShortenForm` uses `createUrlSchema` from `@mochiroute/shared`
+- **Theming**: light/dark palettes; toggle persisted in Redux (custom slice)
+- **Components**: Logo, Navbar, LoginButtons, PageContainer, ParentCard, ShortenForm (WIP), Spinner
+- **Shared validation**: Form validation schemas from @mochiroute/shared
 
 #### Planned UI
 
@@ -206,13 +193,13 @@ Vitest suites across routes, services, middleware, crypto, and config (12 test f
 
 1. **Monorepo validation**: Shared Zod schemas keep server and client in sync on URL shape, pagination, and auth payloads.
 
-2. **Optional auth on create**: `optionalAuthenticate` lets guests shorten URLs while authenticated users get ownership and dashboard access.
+2. **Optional auth on create**: optionalAuthenticate lets guests shorten URLs while authenticated users get ownership and dashboard access.
 
-3. **Production readiness (server)**: Fail-fast config, rate limits, `trust proxy` in prod, graceful shutdown (`SIGTERM` / `SIGINT`) with Prisma disconnect, JWT algorithm pinning, and scoped queries (`userId`) on protected routes.
+3. **Production readiness (server)**: Fail-fast config, rate limits, trust proxy in prod, graceful shutdown (SIGTERM / SIGINT) with Prisma disconnect, JWT algorithm pinning, and scoped queries (userId) on protected routes.
 
-4. **Prisma 7 + driver adapter**: Uses `PrismaPg` adapter with generated client under `src/generated/prisma`.
+4. **Prisma 7 + driver adapter**: Uses PrismaPg adapter with generated client under src/generated/prisma.
 
-5. **Anonymous vs owned URLs**: Nullable `userId` on `UrlRecord` supports public shortening without accounts while keeping management auth-gated.
+5. **Anonymous vs owned URLs**: Nullable userId on UrlRecord supports public shortening without accounts while keeping management auth-gated.
 
 6. **Single deploy unit (cost-effective)**: API + static client from one process in one container. Fewer services to provision and pay for than a split API/frontend deployment.
 
@@ -226,21 +213,19 @@ Vitest suites across routes, services, middleware, crypto, and config (12 test f
 
 - [ ] **Deploy**: Single Docker image (API + built client) on AWS App Runner or similar; one container to minimize hosting cost
 - [ ] **expiresAt**: Enforce link expiration (schema exists; logic deferred)
-- [ ] **DB-aware `/health`**: Check Postgres connectivity, not just process liveness
+- [ ] **DB-aware /health**: Check Postgres connectivity, not just process liveness
 - [ ] **API docs**: OpenAPI/Swagger or expanded Bruno collection
-- [ ] **Admin role**: Use `Role.ADMIN` for moderation/analytics
 - [ ] **Custom short codes**: Optional user-chosen slugs with uniqueness checks
-- [ ] **Link analytics**: Per-link click history beyond aggregate `clicks` count
+- [ ] **Link analytics**: Per-link click history beyond aggregate clicks count
 
 ### Client
 
-- [ ] **Login / Signup pages**: Wire routes and forms to `/api/login` and `/api/register`
-- [ ] **API client**: Centralized fetch layer with `VITE_API_URL` and JWT headers
-- [ ] **Shorten form**: Connect to `POST /api/url`; show result with copy button and toast
+- [ ] **Login / Signup pages**: Wire routes and forms to /api/login and /api/register
+- [ ] **API client**: Centralized fetch layer with VITE_API_URL and JWT headers
 - [ ] **URL dashboard**: Paginated table for authenticated users (list, delete)
 - [ ] **Logout**: Clear Redux auth state and token
-- [ ] **Helmet**: Per-page titles and meta tags (`react-helmet-async`)
-- [ ] **Client tests in CI**: Add `npm run test -w client` to GitHub Actions
+- [ ] **Helmet**: Per-page titles and meta tags (react-helmet-async)
+- [ ] **Client tests in CI**: Add npm run test -w client to GitHub Actions
 - [ ] **E2E**: Cypress flows for shorten, auth, and dashboard
 
 ### DevOps
