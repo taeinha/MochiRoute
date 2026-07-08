@@ -1,6 +1,10 @@
 import { TextField, Typography, Button, Stack, Box } from "@mui/material";
 import ParentCard from "../ParentCard";
-import { createUrlSchema, type CreateUrlResponse } from "@mochiroute/shared";
+import {
+  type CreateUrlRequest,
+  createUrlSchema,
+  type CreateUrlResponse,
+} from "@mochiroute/shared";
 import { useState } from "react";
 import ShortenResult from "./ShortenResult";
 import { createShortUrl } from "@/api";
@@ -9,8 +13,8 @@ const ShortenForm = () => {
   // const authState = useSelector((state: RootState) => state.auth);
   // const isAuthenticated = authState.isAuthenticated;
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Record<string, string | null>>({
-    originalUrl: null,
+  const [error, setError] = useState<CreateUrlRequest>({
+    originalUrl: "",
   });
   const [formData, setFormData] = useState({
     originalUrl: "",
@@ -36,7 +40,7 @@ const ShortenForm = () => {
     const { originalUrl } = validatedData.data;
     setIsLoading(true);
     setResult(null);
-    setError({ originalUrl: null });
+    setError({ originalUrl: "" });
     try {
       const response = await createShortUrl(originalUrl);
       if (!response.success || !response.data) {
@@ -44,7 +48,7 @@ const ShortenForm = () => {
         return;
       }
       setResult(response.data);
-      setError({ originalUrl: null });
+      setError({ originalUrl: "" });
     } catch {
       setError({ originalUrl: "Network error. Please try again." });
     } finally {
@@ -71,6 +75,7 @@ const ShortenForm = () => {
             slotProps={{
               htmlInput: {
                 maxLength: 2048,
+                "data-cy": "shorten-url-input",
               },
             }}
           />
@@ -83,6 +88,7 @@ const ShortenForm = () => {
               sx={{ width: "165px", mt: 1 }}
               disabled={isLoading}
               loading={isLoading}
+              data-cy="shorten-url-submit"
             >
               Shorten
             </Button>

@@ -5,9 +5,13 @@ const SHORT_CODE_PATTERN = /^[a-zA-Z0-9]{7}$/;
 
 export const createUrlSchema = z.object({
   originalUrl: z
-    .url("Invalid URL")
-    .min(1, { message: "URL is required" })
-    .max(2048, { message: "URL must be less than 2048 characters" })
+    .pipe(
+      z
+        .string()
+        .min(1, { message: "URL is required" })
+        .max(2048, { message: "URL must be less than 2048 characters" }),
+      z.url("Invalid URL"),
+    )
     .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {
       message: "URL must start with http:// or https://",
     }),

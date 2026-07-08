@@ -6,7 +6,12 @@
   "scripts": {
     "build": "npm run build -w shared && npm run build -w client",
     "test": "npm run test -w server && npm run test -w client",
-    "typecheck": "npm exec -w server -- tsc --noEmit"
+    "cy:open": "npm run cy:open -w client",
+    "cy:run": "npm run cy:run -w client",
+    "cy:run:component": "npm run cy:run:component -w client",
+    "cy:run:e2e": "npm run cy:run:e2e -w client",
+    "typecheck": "npm exec -w server -- tsc --noEmit",
+    "fix:stale": "rm -rf client/node_modules/.vite"
   },
   "keywords": [],
   "author": "",

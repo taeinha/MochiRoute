@@ -10,12 +10,17 @@ import {
   UserAlreadyExistsError,
   InvalidCredentialsError,
 } from "../../service/auth";
+import { formatZodError } from "../../util";
 
 export const registerUser =
   (db: PrismaClient, config: Config) => async (req: Request, res: Response) => {
     const validationResult = registerSchema.safeParse(req.body);
     if (!validationResult.success) {
-      return writeErrorResponse(res, validationResult.error.message, 400);
+      return writeErrorResponse(
+        res,
+        formatZodError(validationResult.error),
+        400,
+      );
     }
 
     const { email, password } = validationResult.data;
@@ -46,7 +51,11 @@ export const loginUser =
   (db: PrismaClient, config: Config) => async (req: Request, res: Response) => {
     const validationResult = loginSchema.safeParse(req.body);
     if (!validationResult.success) {
-      return writeErrorResponse(res, validationResult.error.message, 400);
+      return writeErrorResponse(
+        res,
+        formatZodError(validationResult.error),
+        400,
+      );
     }
 
     const { email, password } = validationResult.data;

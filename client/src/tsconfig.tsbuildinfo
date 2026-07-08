@@ -1,0 +1,1 @@
+{"root":["./cypress-env.d.ts","./components/shortener/shortenform.cy.tsx","../cypress/support/component.d.ts"],"version":"6.0.3"}
