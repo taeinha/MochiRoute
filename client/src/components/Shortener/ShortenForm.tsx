@@ -14,7 +14,7 @@ const ShortenForm = () => {
   // const isAuthenticated = authState.isAuthenticated;
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<CreateUrlRequest>({
-    originalUrl: null,
+    originalUrl: "",
   });
   const [formData, setFormData] = useState({
     originalUrl: "",
@@ -40,7 +40,7 @@ const ShortenForm = () => {
     const { originalUrl } = validatedData.data;
     setIsLoading(true);
     setResult(null);
-    setError({ originalUrl: null });
+    setError({ originalUrl: "" });
     try {
       const response = await createShortUrl(originalUrl);
       if (!response.success || !response.data) {
@@ -48,7 +48,7 @@ const ShortenForm = () => {
         return;
       }
       setResult(response.data);
-      setError({ originalUrl: null });
+      setError({ originalUrl: "" });
     } catch {
       setError({ originalUrl: "Network error. Please try again." });
     } finally {
