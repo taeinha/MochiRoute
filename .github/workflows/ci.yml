@@ -37,3 +37,11 @@ jobs:
 
       - name: Lint client
         run: npm run lint -w client
+
+      - name: Cypress component tests
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: client
+          install: false
+          command: npm run cy:run:component
+          browser: electron

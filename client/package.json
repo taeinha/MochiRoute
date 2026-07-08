@@ -14,7 +14,9 @@
     "cy:open": "cypress open",
     "cy:run": "cypress run",
     "cy:test": "npx cypress open --e2e --browser chrome",
-    "cy:spec": "cypress run --spec"
+    "cy:spec": "cypress run --spec",
+    "cy:run:component": "cypress run --component --browser electron",
+    "cy:run:e2e": "cypress run --e2e --browser electron"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
