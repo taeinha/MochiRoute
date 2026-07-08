@@ -1,0 +1,7 @@
+{
+  "success": true,
+  "data": {
+    "shortUrl": "http://localhost:3000/r/abc12Xy",
+    "originalUrl": "https://example.com"
+  }
+}

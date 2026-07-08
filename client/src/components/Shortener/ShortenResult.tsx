@@ -44,7 +44,11 @@ const ShortenResult = ({ result, open }: ShortenResultProps) => {
         }}
       >
         <Stack spacing={1.5}>
-          <Typography variant="subtitle2" color="success.main">
+          <Typography
+            variant="subtitle2"
+            color="success.main"
+            data-cy="shorten-result-title"
+          >
             Your short link is ready
           </Typography>
 
@@ -54,8 +58,9 @@ const ShortenResult = ({ result, open }: ShortenResultProps) => {
               fullWidth
               size="small"
               slotProps={{
-                input: {
+                htmlInput: {
                   readOnly: true,
+                  "data-cy": "shorten-result-short-url-input",
                 },
               }}
             />
@@ -63,6 +68,7 @@ const ShortenResult = ({ result, open }: ShortenResultProps) => {
               color={copied ? "success" : "default"}
               onClick={handleCopy}
               aria-label="Copy short URL"
+              data-cy="shorten-result-copy-button"
             >
               {copied ? (
                 <IconCheck size={20} stroke={1.5} />
@@ -73,7 +79,12 @@ const ShortenResult = ({ result, open }: ShortenResultProps) => {
           </Stack>
 
           {result?.originalUrl && (
-            <Typography variant="caption" color="text.secondary" noWrap>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              data-cy="shorten-result-original-url"
+              noWrap
+            >
               Original: {result.originalUrl}
             </Typography>
           )}
@@ -85,6 +96,7 @@ const ShortenResult = ({ result, open }: ShortenResultProps) => {
               target="_blank"
               rel="noopener noreferrer"
               sx={{ width: "165px" }}
+              data-cy="shorten-result-open-in-new-tab"
             >
               Open in new tab
             </Button>

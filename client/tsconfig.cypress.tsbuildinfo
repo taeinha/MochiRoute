@@ -1,0 +1,1 @@
+{"root":["./cypress/e2e/urlshorten.cy.ts","./cypress/support/commands.ts","./cypress/support/component.ts","./cypress/support/e2e.ts","./cypress.config.ts"],"version":"6.0.3"}

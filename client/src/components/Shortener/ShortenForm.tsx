@@ -1,6 +1,10 @@
 import { TextField, Typography, Button, Stack, Box } from "@mui/material";
 import ParentCard from "../ParentCard";
-import { createUrlSchema, type CreateUrlResponse } from "@mochiroute/shared";
+import {
+  type CreateUrlRequest,
+  createUrlSchema,
+  type CreateUrlResponse,
+} from "@mochiroute/shared";
 import { useState } from "react";
 import ShortenResult from "./ShortenResult";
 import { createShortUrl } from "@/api";
@@ -9,7 +13,7 @@ const ShortenForm = () => {
   // const authState = useSelector((state: RootState) => state.auth);
   // const isAuthenticated = authState.isAuthenticated;
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Record<string, string | null>>({
+  const [error, setError] = useState<CreateUrlRequest>({
     originalUrl: null,
   });
   const [formData, setFormData] = useState({
@@ -71,6 +75,7 @@ const ShortenForm = () => {
             slotProps={{
               htmlInput: {
                 maxLength: 2048,
+                "data-cy": "shorten-url-input",
               },
             }}
           />
@@ -83,6 +88,7 @@ const ShortenForm = () => {
               sx={{ width: "165px", mt: 1 }}
               disabled={isLoading}
               loading={isLoading}
+              data-cy="shorten-url-submit"
             >
               Shorten
             </Button>

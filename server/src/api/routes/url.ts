@@ -22,12 +22,17 @@ import {
   deleteUrlRecord,
 } from "../../service/url";
 import { AuthenticatedRequest } from "../../middleware/auth";
+import { formatZodError } from "../../util";
 
 export const createUrl =
   (db: PrismaClient, config: Config) => async (req: Request, res: Response) => {
     const validationResult = createUrlSchema.safeParse(req.body);
     if (!validationResult.success) {
-      return writeErrorResponse(res, validationResult.error.message, 400);
+      return writeErrorResponse(
+        res,
+        formatZodError(validationResult.error),
+        400,
+      );
     }
     const { user } = req as AuthenticatedRequest;
     try {
@@ -58,7 +63,11 @@ export const redirectUrl =
   (db: PrismaClient) => async (req: Request, res: Response) => {
     const validationResult = shortCodeParamSchema.safeParse(req.params);
     if (!validationResult.success) {
-      return writeErrorResponse(res, validationResult.error.message, 400);
+      return writeErrorResponse(
+        res,
+        formatZodError(validationResult.error),
+        400,
+      );
     }
     const { shortCode } = validationResult.data;
 
@@ -78,7 +87,11 @@ export const getUrl =
   (db: PrismaClient) => async (req: Request, res: Response) => {
     const validationResult = urlIdParamSchema.safeParse(req.params);
     if (!validationResult.success) {
-      return writeErrorResponse(res, validationResult.error.message, 400);
+      return writeErrorResponse(
+        res,
+        formatZodError(validationResult.error),
+        400,
+      );
     }
     const { id } = validationResult.data;
     const { user } = req as AuthenticatedRequest;
@@ -102,7 +115,11 @@ export const getUrls =
   (db: PrismaClient) => async (req: Request, res: Response) => {
     const validationResult = listQuerySchema.safeParse(req.query);
     if (!validationResult.success) {
-      return writeErrorResponse(res, validationResult.error.message, 400);
+      return writeErrorResponse(
+        res,
+        formatZodError(validationResult.error),
+        400,
+      );
     }
 
     const { user } = req as AuthenticatedRequest;
@@ -130,7 +147,11 @@ export const deleteUrl =
   (db: PrismaClient) => async (req: Request, res: Response) => {
     const validationResult = urlIdParamSchema.safeParse(req.params);
     if (!validationResult.success) {
-      return writeErrorResponse(res, validationResult.error.message, 400);
+      return writeErrorResponse(
+        res,
+        formatZodError(validationResult.error),
+        400,
+      );
     }
     const { user } = req as AuthenticatedRequest;
     const { id } = validationResult.data;
