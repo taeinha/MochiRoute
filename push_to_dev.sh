@@ -1,6 +1,10 @@
 #!/bin/sh
 set -eu
 
-./build.sh
-docker tag mochiroute-app 325879634266.dkr.ecr.us-east-1.amazonaws.com/mochiroute-app:latest
-docker push 325879634266.dkr.ecr.us-east-1.amazonaws.com/mochiroute-app:latest
+ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
+. "$ROOT_DIR/scripts/ecr-env.sh"
+
+"$ROOT_DIR/build.sh"
+docker push "$ECR_IMAGE_LATEST"
+
+echo "Pushed ${ECR_IMAGE_LATEST}"
