@@ -63,6 +63,31 @@ npm run dev -w server
 npm run dev -w client
 ```
 
+### Docker Compose (app + postgres)
+
+Use Docker Compose to run the production-style stack locally with one command.
+This starts two containers.
+The `app` container serves the API and built frontend on port `3000`.
+The `db` container runs PostgreSQL 16.
+
+```bash
+# Build images and start both services
+docker compose up --build
+
+# Stop services
+docker compose down
+```
+
+The app health endpoint is available at `http://localhost:3000/health`.
+The UI is available at `http://localhost:3000`.
+
+### RDS TLS notes (production)
+
+The Docker runtime image installs the AWS RDS global CA bundle.
+This allows Node and Prisma connections to verify RDS certificates in production.
+Set your production `DATABASE_URL` with SSL enabled, for example `?sslmode=verify-full`.
+Use your RDS endpoint host in `DATABASE_URL` and set `BASE_URL` to your public app URL.
+
 | Variable       | Required | Description                     |
 | -------------- | -------- | ------------------------------- |
 | `DATABASE_URL` | Yes      | PostgreSQL connection string    |

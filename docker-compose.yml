@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:16
+    container_name: mochiroute-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mochi
+      POSTGRES_PASSWORD: mochi
+      POSTGRES_DB: mochiroute
+    ports:
+      - "5432:5432"
+    volumes:
+      - mochiroute-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mochi -d mochiroute"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mochiroute-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      BASE_URL: http://localhost:3000
+      JWT_SECRET: change-this-in-real-envs
+      DATABASE_URL: postgresql://mochi:mochi@db:5432/mochiroute
+      SEED_DB: "true"
+    ports:
+      - "3000:3000"
+    command: >
+      sh -c "npm run db:migrate:deploy -w server &&
+      if [ \"$$SEED_DB\" = \"true\" ]; then npm run db:seed -w server; fi &&
+      npm run start -w server"
+
+volumes:
+  mochiroute-postgres-data:
