@@ -5,6 +5,7 @@ AWS_REGION="${AWS_REGION:-us-east-1}"
 AWS_PROFILE="${AWS_PROFILE:-dev}"
 IMAGE_NAME="${IMAGE_NAME:-mochiroute-app}"
 IMAGE_TAG="${IMAGE_TAG:-latest}"
+PLATFORM="${PLATFORM:-linux/arm64}"
 
 if [ -z "${AWS_ACCOUNT_ID:-}" ]; then
   if ! command -v aws >/dev/null 2>&1; then
