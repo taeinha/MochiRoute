@@ -1,0 +1,14 @@
+.git
+.github
+.cursor
+node_modules
+**/node_modules
+**/.vite
+**/dist
+**/.turbo
+**/.cache
+**/.DS_Store
+**/*.log
+server/.env
+client/cypress/videos
+client/cypress/screenshots
