@@ -1,18 +1,27 @@
 #!/bin/sh
 set -eu
 
-aws ecr get-login-password --region us-east-1 --profile dev \
-  | docker login --username AWS --password-stdin 325879634266.dkr.ecr.us-east-1.amazonaws.com
+ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
+. "$ROOT_DIR/scripts/ecr-env.sh"
 
-SERVICE=mochiroute-app
-STAMP=`date -Iseconds -u | sed -e 's/:/-/g' | sed -e 's/\+.*/Z/'`
+STAMP="$(date -Iseconds -u | sed -e 's/:/-/g' -e 's/\+.*/Z/')"
+ECR_IMAGE_STAMP="${ECR_REGISTRY}/${IMAGE_NAME}:${STAMP}"
 
-docker build . --platform linux/amd64 --no-cache -t "$SERVICE:latest"
+echo "ECR registry: ${ECR_REGISTRY}"
+echo "Local image:  ${LOCAL_IMAGE}"
 
-CMD="docker tag $SERVICE:latest 325879634266.dkr.ecr.us-east-1.amazonaws.com/$SERVICE:latest"
-echo $CMD
-$CMD
+if [ -n "$AWS_PROFILE" ]; then
+  aws ecr get-login-password --region "$AWS_REGION" --profile "$AWS_PROFILE" \
+    | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+else
+  aws ecr get-login-password --region "$AWS_REGION" \
+    | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+fi
 
-CMD="docker tag $SERVICE:latest 325879634266.dkr.ecr.us-east-1.amazonaws.com/$SERVICE:$STAMP"
-echo $CMD
-$CMD
+docker build "$ROOT_DIR" --platform linux/amd64 --no-cache -t "$LOCAL_IMAGE"
+docker tag "$LOCAL_IMAGE" "$ECR_IMAGE_LATEST"
+docker tag "$LOCAL_IMAGE" "$ECR_IMAGE_STAMP"
+
+echo "Tagged:"
+echo "  ${ECR_IMAGE_LATEST}"
+echo "  ${ECR_IMAGE_STAMP}"

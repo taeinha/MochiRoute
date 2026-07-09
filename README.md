@@ -81,6 +81,31 @@ docker compose down
 The app health endpoint is available at `http://localhost:3000/health`.
 The UI is available at `http://localhost:3000`.
 
+### Build and push to ECR
+
+Use the helper scripts from repo root after configuring AWS CLI (profile `dev` by default).
+
+```bash
+./build.sh
+./push_to_dev.sh
+```
+
+Optional environment variables:
+
+| Variable | Default | Description |
+| -------- | ------- | ----------- |
+| `AWS_REGION` | `us-east-1` | ECR region |
+| `AWS_PROFILE` | `dev` | AWS CLI profile |
+| `AWS_ACCOUNT_ID` | from `aws sts get-caller-identity` | 12-digit account ID |
+| `IMAGE_NAME` | `mochiroute-app` | ECR repository name |
+| `IMAGE_TAG` | `latest` | Docker image tag |
+
+Example:
+
+```bash
+AWS_PROFILE=dev IMAGE_TAG=v1 ./build.sh
+```
+
 ### RDS TLS notes (production)
 
 The Docker runtime image installs the AWS RDS global CA bundle.
