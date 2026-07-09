@@ -9,6 +9,7 @@ ECR_IMAGE_STAMP="${ECR_REGISTRY}/${IMAGE_NAME}:${STAMP}"
 
 echo "ECR registry: ${ECR_REGISTRY}"
 echo "Local image:  ${LOCAL_IMAGE}"
+echo "Platform:     ${PLATFORM}"
 
 if [ -n "$AWS_PROFILE" ]; then
   aws ecr get-login-password --region "$AWS_REGION" --profile "$AWS_PROFILE" \
@@ -18,7 +19,7 @@ else
     | docker login --username AWS --password-stdin "$ECR_REGISTRY"
 fi
 
-docker build "$ROOT_DIR" --platform linux/amd64 --no-cache -t "$LOCAL_IMAGE"
+docker build "$ROOT_DIR" --platform "$PLATFORM" --no-cache -t "$LOCAL_IMAGE"
 docker tag "$LOCAL_IMAGE" "$ECR_IMAGE_LATEST"
 docker tag "$LOCAL_IMAGE" "$ECR_IMAGE_STAMP"
 

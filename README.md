@@ -17,7 +17,7 @@ Full-stack URL shortener: shorten links with or without an account, track clicks
 MochiRoute is a monorepo URL shortening app with three workspaces:
 
 - **Server** (`server/`): Express 5 REST API, PostgreSQL (Prisma 7), JWT auth, public redirects
-- **Client** (`client/`): React 19 SPA with MUI, Redux, and React Router *(in progress)*
+- **Client** (`client/`): React 19 SPA with MUI, Redux, and React Router _(in progress)_
 - **Shared** (`shared/`): Zod validation schemas and TypeScript types used by both server and client
 
 The backend is production-hardened (rate limiting, graceful shutdown, scoped auth). The frontend has core layout, routing, theming, and navbar scaffolding; login/register pages, API integration, and the URL dashboard are still being built.
@@ -92,17 +92,24 @@ Use the helper scripts from repo root after configuring AWS CLI (profile `dev` b
 
 Optional environment variables:
 
-| Variable | Default | Description |
-| -------- | ------- | ----------- |
-| `AWS_REGION` | `us-east-1` | ECR region |
-| `AWS_PROFILE` | `dev` | AWS CLI profile |
-| `AWS_ACCOUNT_ID` | from `aws sts get-caller-identity` | 12-digit account ID |
-| `IMAGE_NAME` | `mochiroute-app` | ECR repository name |
-| `IMAGE_TAG` | `latest` | Docker image tag |
+| Variable         | Default                            | Description                                                                                    |
+| ---------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `AWS_REGION`     | `us-east-1`                        | ECR region                                                                                     |
+| `AWS_PROFILE`    | `dev`                              | AWS CLI profile                                                                                |
+| `AWS_ACCOUNT_ID` | from `aws sts get-caller-identity` | 12-digit account ID                                                                            |
+| `IMAGE_NAME`     | `mochiroute-app`                   | ECR repository name                                                                            |
+| `IMAGE_TAG`      | `latest`                           | Docker image tag                                                                               |
+| `PLATFORM`       | `linux/arm64`                      | Docker build target (`linux/arm64` for Graviton EC2, `linux/amd64` for App Runner or `t3` EC2) |
 
-Example:
+Examples:
 
 ```bash
+# Graviton EC2 — default
+./build.sh
+
+# App Runner or x86 EC2
+PLATFORM=linux/amd64 ./build.sh
+
 AWS_PROFILE=dev IMAGE_TAG=v1 ./build.sh
 ```
 
@@ -117,9 +124,9 @@ Use your RDS endpoint host in `DATABASE_URL` and set `BASE_URL` to your public a
 | -------------- | -------- | ------------------------------- |
 | `DATABASE_URL` | Yes      | PostgreSQL connection string    |
 | `JWT_SECRET`   | Yes      | Secret for signing JWTs         |
-| `PORT`         | No       | Server port; default 3000     |
+| `PORT`         | No       | Server port; default 3000       |
 | `BASE_URL`     | Prod     | Public base URL for short links |
-| `NODE_ENV`     | No       | development or production   |
+| `NODE_ENV`     | No       | development or production       |
 
 ```bash
 npm run test -w server    # Server Vitest suites
@@ -133,7 +140,7 @@ npm run db:studio -w server
 
 ## Demo
 
-**Live demo:** [Coming soon](#) *(placeholder)*
+**Live demo:** [https://mochiroute.taeha.dev/](https://mochiroute.taeha.dev/)
 
 ---
 
@@ -184,7 +191,7 @@ npm run db:studio -w server
 
 #### Error handling
 
-- JSON 404 for unknown /api/* routes
+- JSON 404 for unknown /api/\* routes
 - Config fail-fast on missing required env vars
 - Structured logging via Morgan → custom logger
 
@@ -208,12 +215,12 @@ Vitest suites across routes, services, middleware, crypto, and config.
 
 #### Planned UI
 
-| Route      | Purpose                                      |
-| ---------- | -------------------------------------------- |
-| `/`        | Landing + shorten form + copy result         |
-| `/login`   | Login form → JWT stored in Redux             |
-| `/signup`  | Registration form                            |
-| Dashboard  | Table of user's URLs (short, original, clicks, delete) |
+| Route     | Purpose                                                |
+| --------- | ------------------------------------------------------ |
+| `/`       | Landing + shorten form + copy result                   |
+| `/login`  | Login form → JWT stored in Redux                       |
+| `/signup` | Registration form                                      |
+| Dashboard | Table of user's URLs (short, original, clicks, delete) |
 
 **Guest flow**: navbar with Log In / Sign Up; centered shorten form; no account required to shorten.
 
@@ -225,19 +232,19 @@ Vitest suites across routes, services, middleware, crypto, and config.
 
 ### Stack
 
-| Layer        | Server                               | Client                                      |
-| ------------ | ------------------------------------ | ------------------------------------------- |
-| Runtime      | Node.js, TypeScript                  | Browser, TypeScript                         |
-| Framework    | Express 5                            | React 19, Vite 8                            |
-| UI           | N/A                                  | MUI 9, Emotion, Tabler Icons                |
-| State        | N/A                                  | Redux Toolkit                               |
-| Routing      | Express routes                       | React Router 7                              |
-| Database     | PostgreSQL, Prisma 7                 | N/A                                         |
-| Auth         | JWT, bcrypt                          | Redux auth slice (API wiring in progress)   |
-| Validation   | Zod (@mochiroute/shared)             | Zod (@mochiroute/shared)                    |
-| Testing      | Vitest                               | Vitest, Testing Library, Cypress (installed)|
-| Hardening    | Rate limits, CORS (dev), trust proxy | Route guard, lazy loading                   |
-| CI           | Typecheck, test, build, lint         | Build, lint (GitHub Actions on main)        |
+| Layer      | Server                               | Client                                       |
+| ---------- | ------------------------------------ | -------------------------------------------- |
+| Runtime    | Node.js, TypeScript                  | Browser, TypeScript                          |
+| Framework  | Express 5                            | React 19, Vite 8                             |
+| UI         | N/A                                  | MUI 9, Emotion, Tabler Icons                 |
+| State      | N/A                                  | Redux Toolkit                                |
+| Routing    | Express routes                       | React Router 7                               |
+| Database   | PostgreSQL, Prisma 7                 | N/A                                          |
+| Auth       | JWT, bcrypt                          | Redux auth slice (API wiring in progress)    |
+| Validation | Zod (@mochiroute/shared)             | Zod (@mochiroute/shared)                     |
+| Testing    | Vitest                               | Vitest, Testing Library, Cypress (installed) |
+| Hardening  | Rate limits, CORS (dev), trust proxy | Route guard, lazy loading                    |
+| CI         | Typecheck, test, build, lint         | Build, lint (GitHub Actions on main)         |
 
 ### Technical challenges addressed
 
@@ -261,7 +268,7 @@ Vitest suites across routes, services, middleware, crypto, and config.
 
 ### Server
 
-- [ ] **Deploy**: Single Docker image (API + built client) on AWS App Runner or similar; one container to minimize hosting cost
+- [x] **Deploy**: ECR image on EC2 + RDS + Caddy (App Runner / Lambda optional alternative)
 - [ ] **expiresAt**: Enforce link expiration (schema exists; logic deferred)
 - [ ] **DB-aware /health**: Check Postgres connectivity, not just process liveness
 - [ ] **API docs**: OpenAPI/Swagger or expanded Bruno collection
