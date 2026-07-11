@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { registerUser, loginUser } from "./auth";
+import { registerUser, loginUser, logoutUser, myUser } from "./auth";
 import {
   authenticateUser,
   buildAuthResult,
@@ -11,10 +11,13 @@ import {
   createMockReq,
   createMockRes,
   mockPrismaUser,
+  testAuthUser,
   testConfig,
 } from "../../test/helpers";
 import { createMockDb } from "../../test/helpers";
 import { logger } from "../../lib/logger";
+import { COOKIE_NAME } from "../../crypto/jwt";
+import type { AuthenticatedRequest } from "../../middleware/auth";
 
 vi.mock("../../service/auth", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../service/auth")>();
@@ -53,7 +56,7 @@ describe("registerUser route", () => {
     );
   });
 
-  it("returns 201 and token on success", async () => {
+  it("returns 201, sets auth cookie, and omits token from body", async () => {
     vi.mocked(registerUserAccount).mockResolvedValue(mockPrismaUser);
     vi.mocked(buildAuthResult).mockReturnValue({
       user: { email: "test@example.com", role: "user" },
@@ -77,14 +80,22 @@ describe("registerUser route", () => {
       mockPrismaUser,
       testConfig.jwtSecret,
     );
-    expect(res.status).toHaveBeenCalledWith(201);
-    expect(res.json).toHaveBeenCalledWith(
+    expect(res.cookie).toHaveBeenCalledWith(
+      COOKIE_NAME,
+      "test-token",
       expect.objectContaining({
-        success: true,
-        data: { email: "test@example.com", role: "user" },
-        token: "test-token",
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       }),
     );
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      message: "User created successfully",
+      data: { email: "test@example.com", role: "user" },
+    });
   });
 
   it("returns 409 when email already exists", async () => {
@@ -166,7 +177,7 @@ describe("loginUser route", () => {
     });
   });
 
-  it("returns 200 and token on success", async () => {
+  it("returns 200, sets auth cookie, and omits token from body", async () => {
     vi.mocked(authenticateUser).mockResolvedValue(mockPrismaUser);
     vi.mocked(buildAuthResult).mockReturnValue({
       user: { email: "test@example.com", role: "user" },
@@ -186,14 +197,22 @@ describe("loginUser route", () => {
       "test@example.com",
       "password123",
     );
-    expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.json).toHaveBeenCalledWith(
+    expect(res.cookie).toHaveBeenCalledWith(
+      COOKIE_NAME,
+      "test-token",
       expect.objectContaining({
-        success: true,
-        token: "test-token",
-        data: { email: "test@example.com", role: "user" },
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
       }),
     );
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      message: "User logged in successfully",
+      data: { email: "test@example.com", role: "user" },
+    });
   });
 
   it("returns 500 on unexpected error", async () => {
@@ -211,6 +230,45 @@ describe("loginUser route", () => {
     expect(res.json).toHaveBeenCalledWith({
       success: false,
       message: "Failed to log in",
+    });
+  });
+});
+
+describe("logoutUser route", () => {
+  it("clears the auth cookie and returns success", async () => {
+    const req = createMockReq();
+    const res = createMockRes();
+
+    await logoutUser()(req, res);
+
+    expect(res.clearCookie).toHaveBeenCalledWith(
+      COOKIE_NAME,
+      expect.objectContaining({
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+      }),
+    );
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      message: "User logged out successfully",
+    });
+  });
+});
+
+describe("myUser route", () => {
+  it("returns the authenticated user without userId", async () => {
+    const req = createMockReq({}, {}, {}, {}, testAuthUser);
+    const res = createMockRes();
+
+    await myUser()(req as AuthenticatedRequest, res);
+
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      message: "User authenticated successfully",
+      data: { email: "test@example.com", role: "user" },
     });
   });
 });

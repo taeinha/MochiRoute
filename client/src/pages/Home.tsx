@@ -1,6 +1,6 @@
 import { Box, Typography } from "@mui/material";
-import PageContainer from "@/components/PageContainer/PageContainer";
-import ShortenForm from "@/components/Shortener/ShortenForm";
+import PageContainer from "@/components/page-container/PageContainer";
+import ShortenForm from "@/components/shortener/ShortenForm";
 
 const Home = () => {
   return (

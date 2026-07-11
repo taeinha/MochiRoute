@@ -1,14 +1,15 @@
 import { Config } from "../config";
 import { Request, Response, NextFunction } from "express";
 import { writeErrorResponse } from "../api/routes/write";
-import { verifyToken } from "../crypto/jwt";
+import { COOKIE_NAME, verifyToken } from "../crypto/jwt";
 import { TokenPayload } from "@mochiroute/shared";
+import { getCookie } from "../util/tools";
 
 export type AuthenticatedRequest = Request & { user: TokenPayload };
 
 export const authenticate =
   (config: Config) => (req: Request, res: Response, next: NextFunction) => {
-    const token = req.headers.authorization?.split(" ")[1];
+    const token = getCookie(req, COOKIE_NAME);
     if (!token) {
       return writeErrorResponse(res, "Unauthorized", 401);
     }
@@ -23,7 +24,7 @@ export const authenticate =
 
 export const optionalAuthenticate =
   (config: Config) => (req: Request, res: Response, next: NextFunction) => {
-    const token = req.headers.authorization?.split(" ")[1];
+    const token = getCookie(req, COOKIE_NAME);
 
     if (!token) {
       return next(); // anonymous create allowed

@@ -2,7 +2,7 @@ import path from "path";
 import express, { Express, Router } from "express";
 import { Config, isDevelopment } from "../../config";
 import { PrismaClient } from "../../generated/prisma/client";
-import { loginUser, registerUser } from "./auth";
+import { loginUser, logoutUser, myUser, registerUser } from "./auth";
 import { createUrl, deleteUrl, getUrl, getUrls, redirectUrl } from "./url";
 import { authenticate, optionalAuthenticate } from "../../middleware/auth";
 import {
@@ -22,6 +22,8 @@ export function attachRoutes(app: Express, config: Config, db: PrismaClient) {
 
   api.post("/register", authRateLimiter, registerUser(db, config));
   api.post("/login", authRateLimiter, loginUser(db, config));
+  api.post("/logout", authRateLimiter, logoutUser());
+  api.get("/me", authRateLimiter, authenticate(config), myUser());
 
   api.post(
     "/url",

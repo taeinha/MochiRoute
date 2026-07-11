@@ -1,5 +1,5 @@
-import { TextField, Typography, Button, Stack, Box } from "@mui/material";
-import ParentCard from "../ParentCard";
+import { Typography, Button, Stack, Box } from "@mui/material";
+import ParentCard from "../shared/ParentCard";
 import {
   type CreateUrlRequest,
   createUrlSchema,
@@ -8,6 +8,8 @@ import {
 import { useState } from "react";
 import ShortenResult from "./ShortenResult";
 import { createShortUrl } from "@/api";
+import CustomTextField from "../shared/Form/CustomTextField";
+import { parseFormFieldErrors } from "@/util";
 
 const ShortenForm = () => {
   // const authState = useSelector((state: RootState) => state.auth);
@@ -27,10 +29,7 @@ const ShortenForm = () => {
   const handleSubmit = async () => {
     const validatedData = createUrlSchema.safeParse(formData);
     if (!validatedData.success) {
-      const messages = validatedData.error.issues
-        .filter((i) => i.path[0] === "originalUrl")
-        .map((i) => i.message);
-
+      const messages = parseFormFieldErrors(validatedData.error, "originalUrl");
       setError({
         originalUrl: messages.length > 0 ? messages.join(". ") : "Invalid URL",
       });
@@ -62,7 +61,7 @@ const ShortenForm = () => {
           <Typography variant="subtitle2">
             Paste a link and get a shortened URL
           </Typography>
-          <TextField
+          <CustomTextField
             id="shorten-url-input"
             name="originalUrl"
             value={formData.originalUrl}

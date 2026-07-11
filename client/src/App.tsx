@@ -3,7 +3,7 @@ import { CssBaseline, ThemeProvider } from "@mui/material";
 import { useRoutes } from "react-router-dom";
 import { buildTheme } from "./theme/theme";
 import Router from "@/routes/router";
-import ScrollToTop from "./components/ScrollToTop";
+import ScrollToTop from "./components/shared/ScrollToTop";
 import { type RootState, useSelector } from "@/store/store";
 
 function App() {
