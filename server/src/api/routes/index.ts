@@ -22,8 +22,8 @@ export function attachRoutes(app: Express, config: Config, db: PrismaClient) {
 
   api.post("/register", authRateLimiter, registerUser(db, config));
   api.post("/login", authRateLimiter, loginUser(db, config));
-  api.post("/logout", authRateLimiter, logoutUser());
-  api.get("/me", authRateLimiter, authenticate(config), myUser());
+  api.post("/logout", logoutUser());
+  api.get("/me", authenticate(config), myUser());
 
   api.post(
     "/url",

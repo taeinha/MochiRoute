@@ -1,32 +1,28 @@
 meta {
-  name: Get URLs
+  name: Me
   type: http
   seq: 3
 }
 
 get {
-  url: {{apiUrl}}/url
+  url: {{apiUrl}}/me
   body: none
   auth: none
 }
 
-params:query {
-  page: 1
-  pageLength: 10
-}
-
 docs {
   Requires auth_token cookie from Login or Register.
+  Bruno's cookie jar sends it automatically after a successful auth request.
 }
 
 tests {
   test("should return 200", function() {
     expect(res.getStatus()).to.equal(200);
   });
-  test("should return paginated url list", function() {
+  test("should return current user", function() {
     const body = res.getBody();
     expect(body.success).to.equal(true);
-    expect(body.data).to.be.an("array");
-    expect(body.count).to.be.a("number");
+    expect(body.data.email).to.be.a("string");
+    expect(body.data.role).to.be.a("string");
   });
 }

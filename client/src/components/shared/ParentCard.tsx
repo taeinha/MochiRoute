@@ -33,14 +33,14 @@ const ParentCard = ({ title, footer, children, width, sx }: CardProps) => {
         <CardHeader
           title={title}
           sx={{
-            backgroundColor: theme.palette.primary.light,
+            backgroundColor: theme.palette.primary.dark,
+            color: theme.palette.primary.contrastText,
             padding: 0,
           }}
           slotProps={{
             title: {
               sx: {
                 fontSize: "18px",
-                color: theme.palette.text.primary,
                 padding: "10px",
                 fontWeight: 500,
               },

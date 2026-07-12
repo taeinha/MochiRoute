@@ -1,27 +1,42 @@
-import type { AuthResponse } from "@mochiroute/shared";
+import type { ApiResponse, User } from "@mochiroute/shared";
+import { authFetch } from "./common";
 
 export const login = async (
   email: string,
   password: string,
-): Promise<AuthResponse> => {
-  const response = await fetch("/api/login", {
+): Promise<ApiResponse<User>> => {
+  const response = await authFetch("/api/login", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
-  const data: AuthResponse = await response.json();
+  const data: ApiResponse<User> = await response.json();
   return data;
 };
 
 export const register = async (
   email: string,
   password: string,
-): Promise<AuthResponse> => {
-  const response = await fetch("/api/register", {
+): Promise<ApiResponse<User>> => {
+  const response = await authFetch("/api/register", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
-  const data: AuthResponse = await response.json();
+  const data: ApiResponse<User> = await response.json();
+  return data;
+};
+
+export const logout = async (): Promise<ApiResponse<User>> => {
+  const response = await authFetch("/api/logout", {
+    method: "POST",
+  });
+  const data: ApiResponse<User> = await response.json();
+  return data;
+};
+
+export const myUser = async (): Promise<ApiResponse<User>> => {
+  const response = await authFetch("/api/me", {
+    method: "GET",
+  });
+  const data: ApiResponse<User> = await response.json();
   return data;
 };

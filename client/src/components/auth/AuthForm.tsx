@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { Alert, Box, Button, Stack, Snackbar } from "@mui/material";
-import CustomFormLabel from "../shared/Form/CustomFormLabel";
-import CustomTextField from "../shared/Form/CustomTextField";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setIsAuthenticated, setEmail } from "@/store/slices";
+import { Alert, Box, Button, Stack } from "@mui/material";
+import CustomFormLabel from "../shared/form/CustomFormLabel";
+import CustomTextField from "../shared/form/CustomTextField";
 import {
   type LoginRequest,
   type RegisterRequest,
@@ -28,6 +31,9 @@ const AuthForm = ({ formType }: AuthFormProps) => {
     email: "",
     password: "",
   });
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const location = useLocation();
 
   const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -54,7 +60,6 @@ const AuthForm = ({ formType }: AuthFormProps) => {
           ? await login(email, password)
           : await register(email, password);
       if (!response.success || !response.data) {
-        console.log(response);
         setFormError(
           response.message ??
             "Failed to " + (formType === "login" ? "log in" : "sign up"),
@@ -64,6 +69,10 @@ const AuthForm = ({ formType }: AuthFormProps) => {
       setFormSuccess(
         formType === "login" ? "Login successful" : "Sign up successful",
       );
+      dispatch(setIsAuthenticated(true));
+      dispatch(setEmail(response!.data.email));
+      const from = location.state?.from?.pathname ?? "/dashboard";
+      navigate(from);
     } catch {
       setFieldErrors({
         email: "Network error. Please try again.",

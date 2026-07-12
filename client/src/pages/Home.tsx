@@ -7,16 +7,23 @@ const Home = () => {
     <PageContainer
       title="Home"
       description="Home page"
-      sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexDirection: "column",
+      }}
     >
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
+          alignItems: "stretch",
           pt: 8,
           px: { xs: 2, md: 0 },
           width: { xs: "100%", md: "60%" },
           maxWidth: 720,
+          mx: "auto",
         }}
       >
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1, mb: 4 }}>

@@ -1,16 +1,16 @@
 import { useSelector, type RootState } from "@/store/store";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import Spinner from "@/components/shared/spinner/Spinner";
 
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+const GuestRoute = ({ children }: { children: React.ReactNode }) => {
   const isAuthenticated = useSelector((s: RootState) => s.auth.isAuthenticated);
   const authChecked = useSelector((s: RootState) => s.auth.authChecked);
-  const location = useLocation();
+
   if (!authChecked) return <Spinner />;
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
   }
   return children;
 };
 
-export default ProtectedRoute;
+export default GuestRoute;

@@ -1,10 +1,9 @@
 import { styled, AppBar, Box, Stack, IconButton, Toolbar } from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
-import { Link } from "react-router-dom";
 import type { RootState } from "@/store/store";
 import Logo from "@/components/shared/Logo";
 import { setActiveMode } from "@/store/slices/customSlice";
-import { IconMoon, IconSun, IconX } from "@tabler/icons-react";
+import { IconMoon, IconSun } from "@tabler/icons-react";
 import LoginButtons from "@/components/navbar/LoginButtons";
 
 const NavbarStyled = styled(AppBar, {

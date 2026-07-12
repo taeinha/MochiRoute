@@ -2,3 +2,9 @@ headers {
   Accept: application/json
   Content-Type: application/json
 }
+
+docs {
+  Auth uses httpOnly auth_token cookies.
+  Run Login or Register first; Bruno's cookie jar sends the cookie on later requests.
+  No Bearer token or {{token}} env var is needed.
+}

@@ -8,12 +8,14 @@ import {
 import { useState } from "react";
 import ShortenResult from "./ShortenResult";
 import { createShortUrl } from "@/api";
-import CustomTextField from "../shared/Form/CustomTextField";
+import CustomTextField from "../shared/form/CustomTextField";
 import { parseFormFieldErrors } from "@/util";
 
-const ShortenForm = () => {
-  // const authState = useSelector((state: RootState) => state.auth);
-  // const isAuthenticated = authState.isAuthenticated;
+interface ShortenFormProps {
+  onCreated?: () => void;
+}
+
+const ShortenForm = ({ onCreated }: ShortenFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<CreateUrlRequest>({
     originalUrl: "",
@@ -48,6 +50,7 @@ const ShortenForm = () => {
       }
       setResult(response.data);
       setError({ originalUrl: "" });
+      onCreated?.();
     } catch {
       setError({ originalUrl: "Network error. Please try again." });
     } finally {
