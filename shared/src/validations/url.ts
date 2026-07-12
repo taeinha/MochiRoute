@@ -36,5 +36,5 @@ export const urlIdParamSchema = z.object({
 
 export const listQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
-  pageLength: z.coerce.number().int().positive().max(100).default(10),
+  pageLength: z.coerce.number().int().positive().max(100).default(20),
 });

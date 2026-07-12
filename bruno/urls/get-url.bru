@@ -7,9 +7,15 @@ meta {
 get {
   url: {{apiUrl}}/url/{{urlId}}
   body: none
-  auth: bearer
+  auth: none
 }
 
-auth:bearer {
-  token: {{token}}
+docs {
+  Requires auth_token cookie from Login or Register.
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
 }

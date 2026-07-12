@@ -4,11 +4,17 @@ Full-stack URL shortener: shorten links with or without an account, track clicks
 
 ## Table of Contents
 
-- [Background and Overview](#background-and-overview)
 - [Demo](#demo)
+- [Background and Overview](#background-and-overview)
 - [Functionality](#functionality)
 - [Technology and Technical Challenges](#technology-and-technical-challenges)
 - [Future Tasks](#future-tasks)
+
+---
+
+## Demo
+
+**Live demo:** [https://mochiroute.taeha.dev/](https://mochiroute.taeha.dev/)
 
 ---
 
@@ -135,12 +141,6 @@ npm run build -w client   # Production build → client/dist
 npm run lint -w client
 npm run db:studio -w server
 ```
-
----
-
-## Demo
-
-**Live demo:** [https://mochiroute.taeha.dev/](https://mochiroute.taeha.dev/)
 
 ---
 

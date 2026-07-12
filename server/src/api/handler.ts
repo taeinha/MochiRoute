@@ -6,6 +6,7 @@ import { PrismaClient } from "../generated/prisma/client";
 import { attachRoutes } from "./routes";
 import { logger } from "../lib/logger";
 import { isDevelopment } from "../config/";
+import cookieParser from "cookie-parser";
 
 export const createApp = (config: Config, db: PrismaClient): Express => {
   const app = express();
@@ -20,9 +21,15 @@ export const createApp = (config: Config, db: PrismaClient): Express => {
       },
     }),
   );
+  app.use(cookieParser());
 
   if (isDevelopment()) {
-    app.use(cors());
+    app.use(
+      cors({
+        origin: "http://localhost:5173",
+        credentials: true,
+      }),
+    );
   }
 
   // needed for rate limited so req.ip is set to the correct IP

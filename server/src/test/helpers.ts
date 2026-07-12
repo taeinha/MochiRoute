@@ -7,11 +7,15 @@ export function createMockRes() {
     status: vi.fn(),
     json: vi.fn(),
     redirect: vi.fn(),
+    cookie: vi.fn(),
+    clearCookie: vi.fn(),
   } as unknown as Response;
 
   res.status = vi.fn().mockReturnValue(res);
   res.json = vi.fn().mockReturnValue(res);
   res.redirect = vi.fn().mockReturnValue(res);
+  res.cookie = vi.fn().mockReturnValue(res);
+  res.clearCookie = vi.fn().mockReturnValue(res);
   return res;
 }
 
@@ -27,8 +31,9 @@ export function createMockReq(
   headers: Record<string, string> = {},
   query: Record<string, string> = {},
   user?: typeof testAuthUser,
+  cookies: Record<string, string> = {},
 ) {
-  const req = { body, params, headers, query } as Request;
+  const req = { body, params, headers, query, cookies } as Request;
   if (user !== undefined) {
     (req as Request & { user: typeof testAuthUser }).user = user;
   }

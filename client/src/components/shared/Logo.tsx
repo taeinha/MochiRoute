@@ -36,6 +36,9 @@ const StyledLogo = styled("div")(() => ({
 
 const Logo = ({ notLink }: LinkStyledProps) => {
   const customState = useSelector((state: RootState) => state.custom);
+  const isAuthenticated = useSelector(
+    (state: RootState) => state.auth.isAuthenticated,
+  );
 
   const handleClick = (e: MouseEvent<HTMLAnchorElement>) => {
     if (notLink) {
@@ -45,7 +48,7 @@ const Logo = ({ notLink }: LinkStyledProps) => {
 
   return (
     <LinkStyled
-      to="/"
+      to={isAuthenticated ? "/dashboard" : "/"}
       onClick={handleClick}
       topbarHeight={customState.TopbarHeight}
       notLink={notLink}

@@ -7,17 +7,18 @@ meta {
 post {
   url: {{apiUrl}}/url
   body: json
-  auth: bearer
-}
-
-auth:bearer {
-  token: {{token}}
+  auth: none
 }
 
 body:json {
   {
     "originalUrl": "https://example.com/very-long-path"
   }
+}
+
+docs {
+  Optional auth via auth_token cookie. Anonymous create is allowed.
+  Run Login first if you want the URL owned by the logged-in user.
 }
 
 script:post-response {

@@ -17,20 +17,21 @@ body:json {
   }
 }
 
-script:post-response {
-  if (res.status === 201) {
-    const body = res.getBody();
-    if (body?.token) {
-      bru.setEnvVar("token", body.token);
-    }
-  }
-}
-
 tests {
   test("should return 201", function() {
     expect(res.getStatus()).to.equal(201);
   });
-  test("should return token", function() {
-    expect(res.getBody().token).to.be.a("string");
+  test("should return user data without token", function() {
+    const body = res.getBody();
+    expect(body.success).to.equal(true);
+    expect(body.data.email).to.be.a("string");
+    expect(body.data.role).to.be.a("string");
+    expect(body.token).to.equal(undefined);
+  });
+  test("should set auth_token cookie", function() {
+    const setCookie = res.getHeader("set-cookie");
+    expect(setCookie).to.exist;
+    const cookieHeader = Array.isArray(setCookie) ? setCookie.join(";") : String(setCookie);
+    expect(cookieHeader).to.include("auth_token=");
   });
 }

@@ -1,0 +1,24 @@
+meta {
+  name: Logout
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{apiUrl}}/logout
+  body: none
+  auth: none
+}
+
+docs {
+  Clears the auth_token cookie. Run Me or a protected URL request afterward to confirm 401.
+}
+
+tests {
+  test("should return 200", function() {
+    expect(res.getStatus()).to.equal(200);
+  });
+  test("should return success", function() {
+    expect(res.getBody().success).to.equal(true);
+  });
+}
