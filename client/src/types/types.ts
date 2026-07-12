@@ -18,6 +18,11 @@ export interface HeadCell<T> {
   id: keyof T;
   label: string;
   numeric: boolean;
+  truncate?: boolean;
+  link?: boolean;
+  width?: number | string;
+  maxWidth?: number;
+  format?: (value: T[keyof T]) => string;
 }
 
 export type Order = "asc" | "desc";
