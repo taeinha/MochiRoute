@@ -1,7 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import type { Order } from "@/types";
 import {
   Box,
+  Link,
   Paper,
   Table,
   TableContainer,
@@ -10,12 +11,20 @@ import {
   TableCell,
   TablePagination,
   IconButton,
+  Typography,
 } from "@mui/material";
-import { useState } from "react";
 import CustomTableHeader from "./CustomTableHeader";
 import { getComparator } from "@/util";
 import type { HeadCell } from "@/types";
 import DeleteIcon from "@mui/icons-material/Delete";
+
+const truncateSx = (maxWidth: number) => ({
+  display: "block",
+  maxWidth,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+});
 
 interface CustomTableProps<T> {
   rows: T[];
@@ -91,7 +100,7 @@ const CustomTable = <T,>({
       <Paper sx={{ width: "100%", mb: 2 }}>
         <TableContainer>
           <Table
-            sx={{ minWidth: 750 }}
+            sx={{ minWidth: 750, tableLayout: "fixed", width: "100%" }}
             aria-labelledby="Data Table"
             size="medium"
           >
@@ -106,15 +115,78 @@ const CustomTable = <T,>({
               {visibleRows.map((row) => {
                 return (
                   <TableRow hover tabIndex={-1} key={getRowId(row)}>
-                    {headCells.map((headCell) => (
-                      <TableCell
-                        key={String(headCell.id)}
-                        align={headCell.numeric ? "right" : "left"}
-                        padding={headCell.disablePadding ? "none" : "normal"}
-                      >
-                        {String(row[headCell.id] ?? "")}
-                      </TableCell>
-                    ))}
+                    {headCells.map((headCell) => {
+                      const raw = row[headCell.id];
+                      const rawText = String(raw ?? "");
+                      const value = headCell.format
+                        ? headCell.format(raw)
+                        : rawText;
+                      const maxWidth = headCell.maxWidth ?? 280;
+                      const needsTruncate = Boolean(headCell.truncate);
+
+                      let content: ReactNode = value;
+                      if (headCell.link && rawText) {
+                        content = (
+                          <Link
+                            href={rawText}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title={rawText}
+                            underline="hover"
+                            sx={
+                              needsTruncate
+                                ? truncateSx(maxWidth)
+                                : { wordBreak: "break-all" }
+                            }
+                          >
+                            {value}
+                          </Link>
+                        );
+                      } else if (needsTruncate) {
+                        content = (
+                          <Typography
+                            component="span"
+                            variant="body2"
+                            title={rawText}
+                            sx={truncateSx(maxWidth)}
+                          >
+                            {value}
+                          </Typography>
+                        );
+                      } else if (headCell.format && rawText) {
+                        content = (
+                          <Typography
+                            component="span"
+                            variant="body2"
+                            title={rawText}
+                          >
+                            {value}
+                          </Typography>
+                        );
+                      }
+
+                      return (
+                        <TableCell
+                          key={String(headCell.id)}
+                          align={headCell.numeric ? "right" : "left"}
+                          padding={headCell.disablePadding ? "none" : "normal"}
+                          sx={
+                            needsTruncate || headCell.width !== undefined
+                              ? {
+                                  ...(headCell.width !== undefined
+                                    ? { width: headCell.width }
+                                    : {}),
+                                  ...(needsTruncate
+                                    ? { maxWidth, overflow: "hidden" }
+                                    : {}),
+                                }
+                              : undefined
+                          }
+                        >
+                          {content}
+                        </TableCell>
+                      );
+                    })}
                     {onDelete && (
                       <TableCell align="right" padding="normal">
                         <IconButton

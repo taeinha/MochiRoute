@@ -62,6 +62,21 @@ const CustomTableHeader = <T,>({
             align={headCell.numeric ? "right" : "left"}
             padding={headCell.disablePadding ? "none" : "normal"}
             sortDirection={orderBy === headCell.id ? order : false}
+            sx={
+              headCell.truncate || headCell.width !== undefined
+                ? {
+                    ...(headCell.width !== undefined
+                      ? { width: headCell.width }
+                      : {}),
+                    ...(headCell.truncate
+                      ? {
+                          maxWidth: headCell.maxWidth ?? 280,
+                          overflow: "hidden",
+                        }
+                      : {}),
+                  }
+                : undefined
+            }
           >
             <TableSortLabel
               active={orderBy === headCell.id}

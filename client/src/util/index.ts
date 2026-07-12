@@ -26,3 +26,16 @@ export const getComparator = <T, Key extends keyof T>(
     ? (a: T, b: T) => descendingComparator(a, b, orderBy)
     : (a: T, b: T) => -descendingComparator(a, b, orderBy);
 };
+
+export const formatDateTime = (value: string | Date): string => {
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+
+  return date.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+};
